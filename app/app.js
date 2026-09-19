@@ -26,7 +26,7 @@
      ВСТАВЬТЕ_СЮДА_ТОКЕН_ОТ_BOTFATHER — и сохраните файл. Больше ничего
      менять не нужно.
      ========================================================================= */
-  var SHARED_TELEGRAM_BOT_TOKEN = "ВСТАВЬТЕ_СЮДА_ТОКЕН_ОТ_BOTFATHER";
+  var SHARED_TELEGRAM_BOT_TOKEN = "8896207324:AAHuPBuLTpBSHILSnanXS2qwadnAKqRdgBw";
 
   function isBotConfigured() {
     return !!SHARED_TELEGRAM_BOT_TOKEN && SHARED_TELEGRAM_BOT_TOKEN.indexOf("ВСТАВЬТЕ_СЮДА") !== 0;
