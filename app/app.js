@@ -799,6 +799,35 @@
      recurring reminder.
      ======================================================================= */
 
+  // Two plain <select> dropdowns instead of a native <input type="time">.
+  // The native time picker renders and behaves inconsistently across
+  // Android/iOS browsers — on some devices tapping it does nothing and
+  // the value silently never changes, which is exactly the wrong failure
+  // mode for a medication reminder. A <select> is one of the most
+  // reliably tappable controls on every platform.
+  function timeSelectHtml(med) {
+    var parts = med.time.split(":");
+    var curH = parseInt(parts[0], 10);
+    var curM = parseInt(parts[1], 10);
+    var hourOpts = "";
+    for (var h = 0; h < 24; h++) {
+      var hh = h < 10 ? "0" + h : "" + h;
+      hourOpts += '<option value="' + hh + '"' + (h === curH ? " selected" : "") + ">" + hh + "</option>";
+    }
+    var minuteOpts = "";
+    for (var m = 0; m < 60; m += 5) {
+      var mm = m < 10 ? "0" + m : "" + m;
+      minuteOpts += '<option value="' + mm + '"' + (m === curM ? " selected" : "") + ">" + mm + "</option>";
+    }
+    return (
+      '<div class="time-select-group" role="group" aria-label="Время приёма: ' + escapeHtml(med.name) + '">' +
+      '<select class="time-select" data-med="' + med.id + '" data-part="hour" aria-label="Часы">' + hourOpts + "</select>" +
+      '<span class="time-select-colon" aria-hidden="true">:</span>' +
+      '<select class="time-select" data-med="' + med.id + '" data-part="minute" aria-label="Минуты">' + minuteOpts + "</select>" +
+      "</div>"
+    );
+  }
+
   function renderRemindersTab() {
     var sorted = medications.slice().sort(function (a, b) {
       return timeToMinutes(a.time) - timeToMinutes(b.time);
@@ -816,9 +845,8 @@
         "</div>" +
         "</div>" +
         '<div class="reminder-controls">' +
-        '<label class="reminder-time-label" for="time-' + med.id + '">Время</label>' +
-        '<input type="time" id="time-' + med.id + '" class="time-input" value="' + escapeHtml(med.time) +
-        '" aria-label="Время приёма: ' + escapeHtml(med.name) + '" data-med="' + med.id + '">' +
+        '<span class="reminder-time-label">Время</span>' +
+        timeSelectHtml(med) +
         '<button class="toggle-btn' + (on_ ? " toggle-btn--on" : "") + '" data-toggle="' + med.id +
         '" aria-pressed="' + (on_ ? "true" : "false") + '">' +
         '<span aria-hidden="true">' + icon(on_ ? "bell" : "bellOff") + "</span>" +
@@ -836,9 +864,20 @@
 
     renderTabShell("reminders", inner);
 
-    Array.prototype.forEach.call(document.querySelectorAll(".time-input"), function (input) {
-      on(input, "change", function () {
-        setReminderTime(input.getAttribute("data-med"), input.value);
+    Array.prototype.forEach.call(document.querySelectorAll(".time-select"), function (sel) {
+      on(sel, "change", function () {
+        var id = sel.getAttribute("data-med");
+        var med = findMed(id);
+        if (!med) return;
+        var parts = med.time.split(":");
+        var hour = parts[0];
+        var minute = parts[1];
+        var group = sel.closest(".time-select-group");
+        Array.prototype.forEach.call(group.querySelectorAll(".time-select"), function (s) {
+          if (s.getAttribute("data-part") === "hour") hour = s.value;
+          if (s.getAttribute("data-part") === "minute") minute = s.value;
+        });
+        setReminderTime(id, hour + ":" + minute);
       });
     });
     Array.prototype.forEach.call(document.querySelectorAll(".toggle-btn"), function (btn) {

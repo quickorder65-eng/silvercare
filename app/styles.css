@@ -955,19 +955,30 @@ html[data-vision="verylow"] .med-row__status--missed {
   font-weight: 600;
   color: var(--color-muted);
 }
-.time-input {
+.time-select-group {
+  display: flex;
+  align-items: center;
+  gap: 0.2em;
+}
+.time-select-colon {
+  font-weight: 700;
+  color: var(--color-text);
+}
+.time-select {
   font-family: inherit;
   font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.25rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  padding: 0.35em 0.5em;
+  padding: 0.35em 0.4em;
   border-radius: 0.7rem;
   border: 1.5px solid var(--color-border);
   background: var(--color-bg);
   color: var(--color-text);
   min-height: clamp(2.4rem, 6.5dvh, 3rem);
+  /* A plain, reliably-tappable native <select> — no appearance tricks
+     that could interfere with how a given browser opens its picker. */
 }
-.time-input:focus-visible {
+.time-select:focus-visible {
   outline: var(--focus-ring);
   outline-offset: 2px;
 }
