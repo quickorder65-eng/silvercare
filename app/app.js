@@ -1729,11 +1729,60 @@
 
     focusMain();
     playChime();
-    speak("Сейчас " + spokenTime(new Date()) + ". Пора принять " + med.name + ". " + med.dose + ".");
+    speak("Сейчас " + spokenTime(new Date()) + ". Пора принять " + med.name + ". " + spokenDose(med.dose) + ".");
   }
 
+  /* ---------------------------------------------------------------------
+     Numbers, spelled out for speech — TTS engines (especially older
+     Android/MIUI ones) often read a bare digit like "14" one digit at a
+     time ("один четыре") instead of as a number, so anything spoken out
+     loud gets its digits converted to Russian words first. Covers 0–999,
+     which is every hour, minute and realistic dose quantity in the app.
+     `gender` picks the correct word for "one"/"two" (одна/два/два часа
+     vs две минуты) — the noun that follows was typed by the person and
+     is already in the right grammatical form for its own number, so
+     only "one"/"two" ever need to agree with the noun's gender.
+     ------------------------------------------------------------------- */
+  var NUM_ONES = {
+    m: ["", "один", "два", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"],
+    f: ["", "одна", "две", "три", "четыре", "пять", "шесть", "семь", "восемь", "девять"],
+  };
+  var NUM_TEENS = ["десять", "одиннадцать", "двенадцать", "тринадцать", "четырнадцать", "пятнадцать", "шестнадцать", "семнадцать", "восемнадцать", "девятнадцать"];
+  var NUM_TENS = ["", "", "двадцать", "тридцать", "сорок", "пятьдесят", "шестьдесят", "семьдесят", "восемьдесят", "девяносто"];
+  var NUM_HUNDREDS = ["", "сто", "двести", "триста", "четыреста", "пятьсот", "шестьсот", "семьсот", "восемьсот", "девятьсот"];
+  function numberWordsRu(n, gender) {
+    n = Math.round(Math.abs(n));
+    if (n === 0) return "ноль";
+    var ones = NUM_ONES[gender] || NUM_ONES.m;
+    var parts = [];
+    var h = Math.floor(n / 100), rem = n % 100;
+    if (h) parts.push(NUM_HUNDREDS[h]);
+    if (rem >= 10 && rem <= 19) {
+      parts.push(NUM_TEENS[rem - 10]);
+    } else {
+      var t = Math.floor(rem / 10), o = rem % 10;
+      if (t) parts.push(NUM_TENS[t]);
+      if (o) parts.push(ones[o]);
+    }
+    return parts.length ? parts.join(" ") : "ноль";
+  }
+  // Best-effort: spell out a leading quantity in a free-text dose (e.g.
+  // "2 таблетки" → "две таблетки"); a decimal amount ("0.5 мл") is left
+  // as-is rather than risk an unnatural reading.
+  function spokenDose(doseText) {
+    var text = String(doseText || "").trim();
+    // Only a plain whole number at the start is converted — "0.5 мл" or
+    // "1,5 таблетки" is left exactly as typed (rest[0] not a digit/dot/comma
+    // guards against the regex silently eating a decimal's fractional part).
+    var m = /^(\d+)(?![.,]\s?\d)\s*(.*)$/.exec(text);
+    if (!m) return text;
+    var rest = m[2] || "";
+    var gender = /таблет|капсул|ложк|доз|капл|ампул|порц|инъек/i.test(rest) ? "f" : "m";
+    return numberWordsRu(parseInt(m[1], 10), gender) + (rest ? " " + rest : "");
+  }
   function spokenTime(d) {
-    return d.getHours() + " " + hoursWordRu(d.getHours()) + (d.getMinutes() ? " " + d.getMinutes() + " минут" : "");
+    var h = d.getHours(), min = d.getMinutes();
+    return numberWordsRu(h, "m") + " " + hoursWordRu(h) + (min ? " " + numberWordsRu(min, "f") + " " + minutesWordRu(min) : "");
   }
   function hoursWordRu(h) {
     var n = h % 100;
@@ -1742,6 +1791,15 @@
       case 1: return "час";
       case 2: case 3: case 4: return "часа";
       default: return "часов";
+    }
+  }
+  function minutesWordRu(m) {
+    var n = m % 100;
+    if (n >= 11 && n <= 14) return "минут";
+    switch (n % 10) {
+      case 1: return "минута";
+      case 2: case 3: case 4: return "минуты";
+      default: return "минут";
     }
   }
 
