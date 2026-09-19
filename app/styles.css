@@ -263,6 +263,9 @@ p.lead {
   outline: var(--focus-ring);
   outline-offset: 3px;
 }
+a.btn {
+  text-decoration: none;
+}
 
 .btn--primary {
   background: var(--color-primary);

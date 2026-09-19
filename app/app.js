@@ -665,6 +665,7 @@
     apple: '<path d="M12 8.5c-2.6-2.4-6.3-1-6.9 2.4-.6 3.6 1.7 8.4 4.4 9.6 1 .4 1.6-.4 2.5-.4s1.5.8 2.5.4c2-.9 3.6-3.6 4.2-6" /><path d="M12 8.5c0-2 .8-3.6 2.4-4.6" /><path d="M12 8.5c1.6 0 3-.5 4-1.6"/>',
     key: '<circle cx="8" cy="14.5" r="3.2"/><path d="M10.3 12.2 18 4.5"/><path d="M15.5 7 18 9.5"/><path d="M13 9.5l2 2"/>',
     book: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H12v16H5.5A1.5 1.5 0 0 1 4 18.5Z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H12v16h6.5a1.5 1.5 0 0 0 1.5-1.5Z"/>',
+    externalLink: '<path d="M9 6H5.5A1.5 1.5 0 0 0 4 7.5v11A1.5 1.5 0 0 0 5.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15"/><path d="M14 4h6v6"/><line x1="10" y1="14" x2="20" y2="4"/>',
   };
   function icon(name, extraClass) {
     var body = ICONS[name] || "";
@@ -2073,7 +2074,11 @@
       '<button class="btn btn--secondary" id="btn-demo-alert">' + icon("wrench") + "<span>ЗАПУСТИТЬ ТЕСТОВОЕ НАПОМИНАНИЕ</span></button>" +
       '<button class="btn btn--ghost" id="btn-reset-app">' + icon("trash") + "<span>СБРОСИТЬ ПРИЛОЖЕНИЕ (ДЛЯ ДЕМО)</span></button>" +
       "</div>" +
-      '<p class="empty-note" style="text-align:center;align-self:center;">Режим для близких (просмотр статуса приёма родственником) — в разработке.</p>';
+      '<p class="empty-note" style="text-align:center;align-self:center;">Режим для близких (просмотр статуса приёма родственником) — в разработке.</p>' +
+
+      '<div class="btn-stack" style="margin-top:0.25rem;">' +
+      '<a class="btn btn--ghost" href="../" id="btn-back-to-site">' + icon("externalLink") + "<span>ВЕРНУТЬСЯ НА САЙТ</span></a>" +
+      "</div>";
 
     renderTabShell("settings", inner);
 
