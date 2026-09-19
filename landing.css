@@ -374,31 +374,45 @@ a.btn, button.btn {
   aspect-ratio: 390 / 800;
   background: #0c1211;
   border-radius: 2.1rem;
-  /* Extra room at the top keeps the notch entirely inside the dark bezel —
-     our screenshots have no native status bar, so if the image started
-     flush with the notch (like the other three edges) it would sit right
-     on top of the clock/heading instead of above it. */
-  padding: 1.9rem 0.55rem 0.55rem 0.55rem;
+  padding: 0.5rem;
   box-shadow: var(--shadow-phone);
   overflow: hidden;
   flex-shrink: 0;
 }
-.phone-frame img {
+/* The screen itself carries the app's own background, so the sliver the
+   notch sits on reads as a status bar rather than an oversized bezel.
+   The screenshot is nudged down by translateY, clearing the notch —
+   our screenshots have no native status bar of their own, so without
+   this the notch would land right on top of the clock/heading text. */
+.phone-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: #e3e7e8;
+}
+.phone-frame--amber .phone-screen {
+  background: #ffd873;
+}
+.phone-screen img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
   object-position: top center;
-  border-radius: 1.4rem;
+  transform: translateY(1.5rem);
 }
 .phone-notch {
   position: absolute;
-  top: 0.55rem;
+  top: 0.5rem;
   left: 50%;
   transform: translateX(-50%);
-  width: 34%;
-  height: 1.1rem;
+  width: 30%;
+  height: 0.85rem;
   background: #0c1211;
-  border-radius: 0 0 0.8rem 0.8rem;
+  border-radius: 0 0 0.7rem 0.7rem;
   z-index: 2;
 }
 .phone-frame--lg {
