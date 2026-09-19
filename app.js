@@ -84,7 +84,8 @@
     }
   }
 
-  var vibrateTimer = null;
+  // A single call, with a multi-pulse pattern baked in — noticeable once,
+  // never a loop that keeps buzzing until the person dismisses it.
   function vibrateOnce(pattern) {
     if (!wantsVibration()) return;
     if (!("vibrate" in navigator)) return;
@@ -94,19 +95,7 @@
       /* Vibration API not supported — visual alert still applies. */
     }
   }
-  function startRepeatingVibration(pattern, everyMs) {
-    stopRepeatingVibration();
-    if (!wantsVibration()) return;
-    vibrateOnce(pattern);
-    vibrateTimer = setInterval(function () {
-      vibrateOnce(pattern);
-    }, everyMs);
-  }
-  function stopRepeatingVibration() {
-    if (vibrateTimer) {
-      clearInterval(vibrateTimer);
-      vibrateTimer = null;
-    }
+  function stopVibration() {
     if ("vibrate" in navigator) {
       try {
         navigator.vibrate(0);
@@ -152,6 +141,14 @@
       if (medications[i].id === id) return medications[i];
     }
     return null;
+  }
+
+  // A unique id for "this medication's scheduled slot, today" — e.g.
+  // "2026-9-19@14:00". Used so a reminder fires exactly once per slot,
+  // no matter how many times the 15-second scheduler check runs while
+  // the clock still reads 14:00, and even if the page reloads meanwhile.
+  function slotKey(med) {
+    return todayStr() + "@" + med.time;
   }
 
   function getNextMedication() {
@@ -203,7 +200,7 @@
   };
 
   function navigate(screen, params) {
-    stopRepeatingVibration();
+    stopVibration();
     state.screen = screen;
     state.params = params || {};
     render();
@@ -235,9 +232,15 @@
       var med = medications[i];
       if (isTakenToday(med)) continue;
       var dueBySnooze = med.snoozeUntil && Date.now() >= med.snoozeUntil;
-      var dueByTime = !med.snoozeUntil && timeToMinutes(med.time) === now;
+      var currentSlot = slotKey(med);
+      // Only due "by time" if the clock matches AND we haven't already
+      // alerted for this exact slot today — the clock reads e.g. 14:00
+      // for a full 60 seconds, checked every 15s, so without this guard
+      // the same reminder could fire several times in a row.
+      var dueByTime = !med.snoozeUntil && timeToMinutes(med.time) === now && med.lastAlertSlot !== currentSlot;
       if (dueBySnooze || dueByTime) {
         med.snoozeUntil = null;
+        med.lastAlertSlot = currentSlot;
         saveMeds();
         triggerAlert(med.id);
         return;
@@ -500,7 +503,9 @@
 
     focusMain();
     speak("Пора принять лекарство. " + med.name + ". " + med.dose + ".");
-    startRepeatingVibration([600, 250, 600, 250, 600], 4000);
+    // One noticeable multi-pulse buzz, not a loop — the reminder should
+    // announce itself once and then just wait on screen, not keep buzzing.
+    vibrateOnce([500, 200, 500, 200, 500, 200, 500]);
   }
 
   /* =======================================================================
