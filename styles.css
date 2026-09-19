@@ -23,29 +23,30 @@ html {
   --space-scale: 1;
   --touch-min: clamp(2.7rem, 7.6dvh, 3.5rem);
 
-  /* Warm & cozy palette: cream background, terracotta accent, soft tan
-     borders — feels like a home, not a clinic. */
-  --color-bg: #fbf1e4;
-  --color-surface: #fffdf8;
-  --color-text: #3b2a1e;
-  --color-muted: #6b5744;
-  --color-border: #c79b6e;
+  /* Silvery-grey palette with a mint/turquoise accent — calm and clean,
+     not a clinic. White cards on a soft grey page, mint for the primary
+     action, all ratios below checked to stay well above WCAG AA. */
+  --color-bg: #e3e7e8;
+  --color-surface: #ffffff;
+  --color-text: #263238;
+  --color-muted: #4d5f61;
+  --color-border: #6d8084;
 
-  --color-primary: #b5502a;
-  --color-primary-dark: #8f3e1f;
-  --color-primary-contrast: #ffffff;
+  --color-primary: #35d1bc;
+  --color-primary-dark: #106b5f;
+  --color-primary-contrast: #0b2b26;
 
-  --color-secondary: #7a5230;
-  --color-secondary-dark: #5c3d22;
+  --color-secondary: #3f6b6a;
+  --color-secondary-dark: #2c4f4e;
 
-  --color-success: #4f7a3d;
-  --color-success-dark: #3a5c2c;
+  --color-success: #1f6b41;
+  --color-success-dark: #154a30;
 
-  --color-alert-bg: #fce1ae;
-  --color-alert-text: #3b2410;
-  --color-alert-accent: #a85b12;
+  --color-alert-bg: #ffd873;
+  --color-alert-text: #3b2b06;
+  --color-alert-accent: #7a5005;
 
-  --focus-ring: 4px solid #d9480f;
+  --focus-ring: 4px solid #0f766b;
 
   font-size: 16px;
   height: 100%;
@@ -58,28 +59,28 @@ html {
    text never pushes buttons off the bottom of the screen. */
 html[data-vision="low"] {
   --font-scale: 1.14;
-  --color-border: #a9825a;
+  --color-border: #5a6e72;
 }
 html[data-vision="verylow"] {
-  /* Same warm hue family, pushed to maximum contrast: warm near-black
-     background with a bright amber accent instead of stark black/yellow. */
+  /* Same cool mint/grey family, pushed to maximum contrast: near-black
+     background with a bright mint accent instead of stark black/white. */
   --font-scale: 1.3;
-  --color-bg: #170f08;
-  --color-surface: #170f08;
-  --color-text: #fff6e8;
-  --color-muted: #f3e6d3;
-  --color-border: #fff6e8;
-  --color-primary: #ffb648;
-  --color-primary-dark: #e09a2e;
-  --color-primary-contrast: #1a1206;
-  --color-secondary: #ffd9a0;
-  --color-secondary-dark: #e0b672;
-  --color-success: #bfe38a;
-  --color-success-dark: #9cc96a;
-  --color-alert-bg: #ffb648;
-  --color-alert-text: #1a1206;
-  --color-alert-accent: #1a1206;
-  --focus-ring: 5px solid #ffb648;
+  --color-bg: #0d1414;
+  --color-surface: #0d1414;
+  --color-text: #f2f7f7;
+  --color-muted: #cfe0e0;
+  --color-border: #f2f7f7;
+  --color-primary: #46e0cf;
+  --color-primary-dark: #23c2b0;
+  --color-primary-contrast: #06201d;
+  --color-secondary: #bfeee8;
+  --color-secondary-dark: #8fd9cf;
+  --color-success: #2e7a52;
+  --color-success-dark: #5fc98c;
+  --color-alert-bg: #ffd873;
+  --color-alert-text: #241a02;
+  --color-alert-accent: #241a02;
+  --focus-ring: 5px solid #46e0cf;
 }
 
 /* ---- Motor axis ---------------------------------------------------------
@@ -218,10 +219,10 @@ p.lead {
   border-color: var(--color-secondary);
 }
 .btn--secondary:hover {
-  background: #f6e9d6;
+  background: #dcecea;
 }
 html[data-vision="verylow"] .btn--secondary:hover {
-  background: #2a1c10;
+  background: #0f2422;
 }
 .btn--success {
   background: var(--color-success);
@@ -416,13 +417,6 @@ html[data-vision="verylow"] .med-card__time {
 html[data-vision="verylow"] .alert-title {
   font-size: clamp(1rem, 3vh, 1.5rem);
 }
-html[data-vision="verylow"] .alert-screen.pulse {
-  animation: alert-pulse-dark 1.1s ease-in-out infinite;
-}
-@keyframes alert-pulse-dark {
-  0%, 100% { background: #ffb648; }
-  50% { background: #ffe3ab; }
-}
 .alert-icon {
   font-size: clamp(2.4rem, 8dvh, 4rem);
   line-height: 1;
@@ -538,4 +532,403 @@ a, button {
 ::selection {
   background: var(--color-primary);
   color: var(--color-primary-contrast);
+}
+
+/* =========================================================================
+   TAB SHELL — scrollable content area + persistent bottom navigation.
+   Used by Сегодня / Лекарства / Напоминания / История / Настройки.
+   The nav itself never scrolls or shrinks; only the content above it does,
+   and only when a list is genuinely too long for the screen.
+   ========================================================================= */
+.tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+.screen--tab {
+  flex: none;
+  min-height: 100%;
+  justify-content: flex-start;
+  overflow: visible;
+}
+
+.bottom-nav {
+  flex-shrink: 0;
+  display: flex;
+  border-top: 3px solid var(--color-border);
+  background: var(--color-surface);
+  padding: clamp(0.25rem, 1dvh, 0.5rem) clamp(0.2rem, 2vw, 0.5rem);
+  padding-bottom: calc(clamp(0.25rem, 1dvh, 0.5rem) + env(safe-area-inset-bottom, 0px));
+  gap: clamp(0.1rem, 1vw, 0.3rem);
+}
+.nav-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  min-height: var(--touch-min);
+  padding: 0.3rem 0.1rem;
+  background: transparent;
+  border: none;
+  border-top: 4px solid transparent;
+  border-radius: 0.9rem;
+  color: var(--color-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+.nav-item__icon {
+  font-size: clamp(1.15rem, 3.3dvh, 1.65rem);
+  line-height: 1;
+}
+.nav-item__label {
+  font-size: clamp(0.6rem, 1.45dvh, 0.8rem);
+  font-weight: 600;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+.nav-item[aria-current="page"] {
+  color: var(--color-alert-accent);
+  background: var(--color-alert-bg);
+  border-top-color: var(--color-primary);
+}
+.nav-item[aria-current="page"] .nav-item__icon {
+  font-size: clamp(1.3rem, 3.7dvh, 1.85rem);
+}
+.nav-item[aria-current="page"] .nav-item__label {
+  font-weight: 800;
+}
+.nav-item:hover {
+  color: var(--color-primary-dark);
+}
+.nav-item:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   WEEKLY CALENDAR
+   ========================================================================= */
+.week-calendar {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.15rem, 1vw, 0.5rem);
+  width: 100%;
+  flex-shrink: 0;
+}
+.week-nav-btn {
+  flex-shrink: 0;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  min-width: 2.2rem;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-primary-dark);
+  font-size: clamp(1.2rem, 3.6dvh, 1.8rem);
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+}
+.week-nav-btn:hover {
+  background: #dcecea;
+}
+html[data-vision="verylow"] .week-nav-btn:hover {
+  background: #0f2422;
+}
+.week-nav-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.week-row {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: clamp(0.1rem, 1vw, 0.4rem);
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.week-row::-webkit-scrollbar {
+  display: none;
+}
+
+.day-cell {
+  flex: 1 1 0;
+  min-width: clamp(1.85rem, calc(8vw * var(--font-scale)), 3.4rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  padding: 0.3rem 0.1rem;
+  min-height: clamp(2.9rem, 8.2dvh, 3.8rem);
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  font-family: inherit;
+}
+.day-cell__label {
+  font-size: clamp(0.6rem, 1.45dvh, 0.78rem);
+  font-weight: 600;
+  color: var(--color-muted);
+}
+.day-cell__num {
+  font-size: clamp(0.95rem, calc(2.6vh * var(--font-scale)), 1.6rem);
+  font-weight: 800;
+  min-width: 1.9em;
+  min-height: 1.9em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  line-height: 1;
+}
+.day-cell--today {
+  border-color: var(--color-primary);
+}
+.day-cell--today .day-cell__num {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+.day-cell--selected {
+  background: var(--color-alert-bg);
+  border-color: var(--color-alert-accent);
+}
+.day-cell--selected .day-cell__label {
+  font-weight: 800;
+  color: var(--color-alert-accent);
+}
+.day-cell[aria-pressed="true"]::after {
+  content: "";
+  display: block;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+  background: var(--color-alert-accent);
+  margin-top: 0.05rem;
+}
+.day-cell:hover {
+  border-color: var(--color-border);
+}
+.day-cell:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.date-heading {
+  width: 100%;
+  align-self: flex-start;
+  text-align: left;
+  font-size: clamp(1rem, calc(2.6vh * var(--font-scale)), 1.4rem);
+  font-weight: 800;
+  margin: 0;
+}
+
+.lead--tight {
+  margin: 0;
+}
+
+/* =========================================================================
+   MEDICATION ROW — shared by Сегодня and История
+   ========================================================================= */
+.med-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: clamp(0.35rem, 1.5vw, 0.7rem);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 1.2rem;
+  padding: clamp(0.5rem, 1.6dvh, 0.8rem) clamp(0.6rem, 3vw, 0.9rem);
+  text-align: left;
+}
+.med-row__icon {
+  font-size: clamp(1.3rem, 3.6dvh, 1.9rem);
+  flex-shrink: 0;
+  line-height: 1;
+}
+.med-row__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+  flex: 1 1 40%;
+  min-width: 0;
+}
+.med-row__name {
+  font-size: clamp(0.95rem, calc(2.3vh * var(--font-scale)), 1.25rem);
+  font-weight: 700;
+  overflow-wrap: break-word;
+}
+.med-row__meta {
+  font-size: clamp(0.75rem, calc(1.7vh * var(--font-scale)), 1rem);
+  color: var(--color-muted);
+}
+.med-row__time {
+  font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.25rem);
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  flex-shrink: 0;
+}
+html[data-vision="verylow"] .med-row__time {
+  color: var(--color-primary);
+}
+.med-row__status {
+  flex-shrink: 0;
+  font-size: clamp(0.72rem, 1.7dvh, 0.92rem);
+  font-weight: 700;
+  padding: 0.3em 0.65em;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 2px solid transparent;
+  margin-left: auto;
+}
+.med-row__status--taken {
+  background: #e3efdb;
+  color: var(--color-success-dark);
+  border-color: var(--color-success);
+}
+.med-row__status--next {
+  background: var(--color-alert-bg);
+  color: var(--color-alert-accent);
+  border-color: var(--color-alert-accent);
+}
+.med-row__status--scheduled {
+  background: #dde3e4;
+  color: var(--color-muted);
+  border-color: var(--color-border);
+}
+.med-row__status--missed {
+  background: #f6dcd2;
+  color: #8a3b23;
+  border-color: #c0553a;
+}
+html[data-vision="verylow"] .med-row__status--taken {
+  background: #122a20;
+  color: #7be8b8;
+  border-color: #7be8b8;
+}
+html[data-vision="verylow"] .med-row__status--scheduled {
+  background: #1c2626;
+  color: #cfe0e0;
+  border-color: #f2f7f7;
+}
+html[data-vision="verylow"] .med-row__status--missed {
+  background: #2e150c;
+  color: #ffb0a0;
+  border-color: #ffb0a0;
+}
+
+.empty-note {
+  width: 100%;
+  align-self: flex-start;
+  text-align: left;
+  font-size: clamp(0.9rem, 2.1dvh, 1.1rem);
+  color: var(--color-muted);
+  margin: 0;
+}
+
+/* =========================================================================
+   НАПОМИНАНИЯ — per-reminder time + enable/disable controls
+   ========================================================================= */
+.reminder-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1.2dvh, 0.7rem);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 1.2rem;
+  padding: clamp(0.5rem, 1.6dvh, 0.9rem) clamp(0.6rem, 3vw, 0.9rem);
+  text-align: left;
+}
+.reminder-row__top {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.4rem, 1.5vw, 0.7rem);
+}
+.reminder-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: clamp(0.4rem, 1.5vw, 0.7rem);
+}
+.reminder-time-label {
+  font-size: clamp(0.8rem, 1.9dvh, 1rem);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.time-input {
+  font-family: inherit;
+  font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.25rem);
+  font-weight: 700;
+  padding: 0.35em 0.5em;
+  border-radius: 0.8rem;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: clamp(2.4rem, 6.5dvh, 3rem);
+}
+.time-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+  margin-left: auto;
+  padding: 0.4em 0.9em;
+  min-height: clamp(2.4rem, 6.5dvh, 3rem);
+  font-size: clamp(0.85rem, 2vh, 1.05rem);
+  font-weight: 700;
+  font-family: inherit;
+  border-radius: 999px;
+  border: 2px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  cursor: pointer;
+}
+.toggle-btn--on {
+  background: var(--color-alert-bg);
+  border-color: var(--color-alert-accent);
+  color: var(--color-alert-accent);
+}
+.toggle-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   ИСТОРИЯ — grouped by day
+   ========================================================================= */
+.history-group {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1.2dvh, 0.7rem);
+  text-align: left;
+}
+.history-group__heading {
+  font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.25rem);
+  font-weight: 800;
+  margin: clamp(0.5rem, 1.4dvh, 0.8rem) 0 0;
+  align-self: flex-start;
+}
+.history-group:first-child .history-group__heading {
+  margin-top: 0;
 }
