@@ -2,20 +2,307 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
-<title>SilverCare — напоминания о лекарствах</title>
-<meta name="description" content="SilverCare — простое приложение для напоминаний о приёме лекарств" />
-<link rel="stylesheet" href="styles.css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SilverCare — забота о приёме лекарств для пожилых людей</title>
+<meta name="description" content="SilverCare — простой и доступный помощник для пожилых людей: напоминания о лекарствах, недельное расписание и интерфейс, который подстраивается под зрение, слух и моторику пользователя." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="landing.css" />
 </head>
 <body>
-  <!-- Live region for screen readers: announces important changes -->
-  <div id="sr-announcer" aria-live="polite" class="sr-only"></div>
 
-  <main id="app" role="main">
-    <!-- App is rendered here by app.js -->
-    <p>Загрузка SilverCare…</p>
-  </main>
+<a class="skip-link" href="#main">Перейти к содержанию</a>
 
-  <script src="app.js"></script>
+<header class="site-header" id="top">
+  <div class="wrap header-row">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="icon"><path d="M12 3 4 6.5V11c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6.5L12 3Z"/><path d="M9 12.2l2.1 2.1L15.5 10"/></svg>
+      </span>
+      SilverCare
+    </a>
+    <nav class="main-nav" aria-label="Разделы сайта">
+      <a href="#how-it-works">Как это работает</a>
+      <a href="#features">Возможности</a>
+      <a href="#accessibility">Доступность</a>
+      <a href="#app-preview">Приложение</a>
+    </nav>
+    <a class="btn btn-primary header-cta" href="app/index.html">Открыть приложение</a>
+    <button class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="mobile-nav" aria-label="Открыть меню">
+      <svg viewBox="0 0 24 24" class="icon"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobile-nav" aria-label="Разделы сайта (мобильное меню)" hidden>
+    <a href="#how-it-works">Как это работает</a>
+    <a href="#features">Возможности</a>
+    <a href="#accessibility">Доступность</a>
+    <a href="#app-preview">Приложение</a>
+    <a class="btn btn-primary" href="app/index.html">Открыть приложение</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="wrap hero-grid">
+      <div class="hero-copy reveal">
+        <span class="chip">Забота, которая всегда рядом</span>
+        <h1>Лекарства вовремя.<br />Забота&nbsp;каждый&nbsp;день.</h1>
+        <p class="hero-text">
+          SilverCare — простой помощник для пожилых людей, который напоминает о приёме
+          лекарств, помогает следить за расписанием и адаптирует интерфейс под возможности
+          пользователя.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary btn-lg" href="app/index.html">Открыть приложение</a>
+          <a class="btn btn-ghost btn-lg" href="#how-it-works">Как это работает</a>
+        </div>
+        <div class="hero-trust">
+          <span><svg viewBox="0 0 24 24" class="icon"><path d="M8 12.5l2.5 2.5L16 9.5"/><circle cx="12" cy="12" r="9"/></svg>Без регистрации</span>
+          <span><svg viewBox="0 0 24 24" class="icon"><path d="M8 12.5l2.5 2.5L16 9.5"/><circle cx="12" cy="12" r="9"/></svg>Работает в браузере</span>
+          <span><svg viewBox="0 0 24 24" class="icon"><path d="M8 12.5l2.5 2.5L16 9.5"/><circle cx="12" cy="12" r="9"/></svg>Подстраивается под пользователя</span>
+        </div>
+      </div>
+      <div class="hero-visual reveal">
+        <div class="phone-frame phone-frame--lg">
+          <div class="phone-notch" aria-hidden="true"></div>
+          <img src="assets/mock-today.png" alt="Главный экран приложения SilverCare: часы, недельный календарь и список лекарств на сегодня" />
+        </div>
+        <div class="floaty floaty--a" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 6 2 6H4c.5 0 2-2 2-6Z"/><path d="M9.5 18a2.5 2.5 0 0 0 5 0"/></svg>
+          <span>Напоминание в 14:00</span>
+        </div>
+        <div class="floaty floaty--b" aria-hidden="true">
+          <svg viewBox="0 0 24 24" class="icon"><path d="M8 12.5l2.5 2.5L16 9.5"/><circle cx="12" cy="12" r="9"/></svg>
+          <span>Метформин принят</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= PROBLEM ================= -->
+  <section class="section">
+    <div class="wrap">
+      <h2 class="section-title reveal">Почему SilverCare?</h2>
+      <div class="problem-grid">
+        <div class="problem-card reveal">
+          <div class="problem-num">01</div>
+          <p>Приём нескольких препаратов по разному расписанию легко перепутать или пропустить.</p>
+        </div>
+        <div class="problem-card reveal">
+          <div class="problem-num">02</div>
+          <p>Обычные приложения неудобны для пожилых людей из-за мелкого текста, сложной навигации и одного типа уведомлений.</p>
+        </div>
+        <div class="problem-card reveal">
+          <div class="problem-num">03</div>
+          <p>SilverCare объединяет простое расписание и доступный интерфейс в одном спокойном экране.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= HOW IT WORKS ================= -->
+  <section class="section section--alt" id="how-it-works">
+    <div class="wrap">
+      <h2 class="section-title reveal">Как работает SilverCare</h2>
+      <div class="steps">
+        <div class="step reveal">
+          <div class="step-num">01</div>
+          <h3>Настройте</h3>
+          <p>Добавьте лекарства, дозировку и время приёма.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">02</div>
+          <h3>Получите напоминание</h3>
+          <p>SilverCare напомнит о приёме доступным пользователю способом.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">03</div>
+          <h3>Подтвердите</h3>
+          <p>Нажмите большую кнопку «Я принял(а)».</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num">04</div>
+          <h3>Следите за историей</h3>
+          <p>Просматривайте выполненные и пропущенные приёмы.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= ACCESSIBILITY ================= -->
+  <section class="section section--dark" id="accessibility">
+    <div class="wrap">
+      <h2 class="section-title section-title--onDark reveal">Приложение адаптируется под человека.</h2>
+      <p class="section-lead reveal">При первом запуске SilverCare помогает подобрать удобный способ взаимодействия.</p>
+      <div class="access-grid">
+        <div class="access-card reveal">
+          <span class="access-icon"><svg viewBox="0 0 24 24" class="icon"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <h3>Зрение</h3>
+          <p>Крупный текст, высокий контраст и голосовое сопровождение помогают получать важную информацию.</p>
+        </div>
+        <div class="access-card reveal">
+          <span class="access-icon"><svg viewBox="0 0 24 24" class="icon"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg></span>
+          <h3>Слух</h3>
+          <p>Визуальные сигналы и вибрация позволяют не зависеть только от звуковых уведомлений.</p>
+        </div>
+        <div class="access-card reveal">
+          <span class="access-icon"><svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></span>
+          <h3>Простое управление</h3>
+          <p>Большие кнопки и понятные действия снижают необходимость точных нажатий.</p>
+        </div>
+      </div>
+      <p class="philosophy reveal">
+        Не пользователь адаптируется под приложение.<br />
+        <strong>SilverCare адаптируется под пользователя.</strong>
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= FEATURE SHOWCASE ================= -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <h2 class="section-title reveal">Возможности</h2>
+
+      <div class="feature-row reveal">
+        <div class="feature-visual">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-today.png" alt="Недельный календарь и расписание лекарств на выбранный день" />
+          </div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">Расписание</span>
+          <h3>Расписание лекарств</h3>
+          <p>Простой недельный календарь показывает приёмы на любой выбранный день — сегодня, вчера или наперёд, без сложной месячной сетки.</p>
+        </div>
+      </div>
+
+      <div class="feature-row feature-row--reverse reveal">
+        <div class="feature-visual">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-alert.png" alt="Полноэкранное напоминание с названием лекарства, дозировкой и крупной кнопкой подтверждения" />
+          </div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">Напоминания</span>
+          <h3>Понятные напоминания</h3>
+          <p>Крупное полноэкранное напоминание показывает название лекарства, дозировку и время — с одной большой кнопкой подтверждения.</p>
+        </div>
+      </div>
+
+      <div class="feature-row reveal">
+        <div class="feature-visual">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-history.png" alt="История приёма лекарств за несколько дней со статусами Принято и Пропущено" />
+          </div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">История</span>
+          <h3>История приёмов</h3>
+          <p>Видно, что и когда было принято, отложено или пропущено — для самого человека и его близких.</p>
+        </div>
+      </div>
+
+      <div class="feature-row feature-row--reverse reveal">
+        <div class="feature-visual">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-exercise.png" alt="Простое ежедневное упражнение на память с вариантами ответа" />
+          </div>
+        </div>
+        <div class="feature-copy">
+          <span class="eyebrow">Упражнения</span>
+          <h3>Упражнения каждый день</h3>
+          <p>Необязательные простые упражнения поддерживают ежедневную умственную активность.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= MULTIMODAL ================= -->
+  <section class="section section--alt">
+    <div class="wrap">
+      <h2 class="section-title reveal">Одно напоминание.<br />Несколько способов его получить.</h2>
+      <p class="section-lead reveal">SilverCare подстраивает то, как передаётся важная информация, — под предпочтения человека и возможности устройства.</p>
+      <div class="modal-grid">
+        <div class="modal-card reveal">
+          <span class="modal-icon"><svg viewBox="0 0 24 24" class="icon"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a8 8 0 0 1 0 11"/></svg></span>
+          <h3>Голос</h3>
+          <p>Голосовое озвучивание напоминаний для тех, кому проще услышать, чем прочитать.</p>
+        </div>
+        <div class="modal-card reveal">
+          <span class="modal-icon"><svg viewBox="0 0 24 24" class="icon"><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+          <h3>Визуальный сигнал</h3>
+          <p>Яркий полноэкранный экран, который трудно не заметить.</p>
+        </div>
+        <div class="modal-card reveal">
+          <span class="modal-icon"><svg viewBox="0 0 24 24" class="icon"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="10" y1="19" x2="14" y2="19"/></svg></span>
+          <h3>Вибрация</h3>
+          <p>Один заметный сигнал вибрацией — без бесконечного дребезжания.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= APP PREVIEW ================= -->
+  <section class="section" id="app-preview">
+    <div class="wrap">
+      <h2 class="section-title reveal">Посмотрите SilverCare в действии</h2>
+      <div class="preview-grid">
+        <div class="preview-item reveal">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-today.png" alt="Главный экран SilverCare" />
+          </div>
+          <p>Главный экран</p>
+        </div>
+        <div class="preview-item reveal">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-alert.png" alt="Напоминание о приёме лекарства" />
+          </div>
+          <p>Напоминание</p>
+        </div>
+        <div class="preview-item reveal">
+          <div class="phone-frame">
+            <div class="phone-notch" aria-hidden="true"></div>
+            <img src="assets/mock-history.png" alt="История приёма лекарств" />
+          </div>
+          <p>История</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FINAL CTA ================= -->
+  <section class="final-cta">
+    <div class="wrap final-cta-inner reveal">
+      <h2>Попробуйте SilverCare</h2>
+      <p>Настройте приложение под себя и добавьте первое лекарство.</p>
+      <a class="btn btn-primary btn-xl" href="app/index.html">Открыть приложение</a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-row">
+    <span class="brand brand--footer">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" class="icon"><path d="M12 3 4 6.5V11c0 5 3.4 8.7 8 10 4.6-1.3 8-5 8-10V6.5L12 3Z"/><path d="M9 12.2l2.1 2.1L15.5 10"/></svg>
+      </span>
+      SilverCare
+    </span>
+    <p>Забота, которая всегда рядом.</p>
+  </div>
+</footer>
+
+<script src="landing.js"></script>
 </body>
 </html>
