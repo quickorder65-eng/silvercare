@@ -374,7 +374,11 @@ a.btn, button.btn {
   aspect-ratio: 390 / 800;
   background: #0c1211;
   border-radius: 2.1rem;
-  padding: 0.55rem;
+  /* Extra room at the top keeps the notch entirely inside the dark bezel —
+     our screenshots have no native status bar, so if the image started
+     flush with the notch (like the other three edges) it would sit right
+     on top of the clock/heading instead of above it. */
+  padding: 1.9rem 0.55rem 0.55rem 0.55rem;
   box-shadow: var(--shadow-phone);
   overflow: hidden;
   flex-shrink: 0;
@@ -384,7 +388,7 @@ a.btn, button.btn {
   height: 100%;
   object-fit: cover;
   object-position: top center;
-  border-radius: 1.6rem;
+  border-radius: 1.4rem;
 }
 .phone-notch {
   position: absolute;
