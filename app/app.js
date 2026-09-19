@@ -525,6 +525,7 @@
     if (med.takenSlots.indexOf(sKey) === -1) med.takenSlots.push(sKey);
     if (med.snoozes) delete med.snoozes[sKey];
     saveMeds();
+    notifyDoseTakenIfEnabled(med, key, time);
   }
   function undoTaken(medId, time) {
     var med = findMed(medId);
@@ -544,9 +545,11 @@
   function markPrnTaken(medId) {
     var med = findMed(medId);
     if (!med) return;
-    var sKey = slotKey(todayKey(), "PRN");
+    var key = todayKey();
+    var sKey = slotKey(key, "PRN");
     if (med.takenSlots.indexOf(sKey) === -1) med.takenSlots.push(sKey);
     saveMeds();
+    notifyDoseTakenIfEnabled(med, key, "PRN");
   }
   function isPrnTakenToday(med) {
     return med.takenSlots.indexOf(slotKey(todayKey(), "PRN")) !== -1;
@@ -676,6 +679,29 @@
       }
     } catch (e) {}
     return true;
+  }
+
+  // Good-news counterpart to checkEmergencyEscalations: as soon as the
+  // dose is actually confirmed taken (button pressed), let the trusted
+  // contact know too, not just when something's wrong. Fires a couple
+  // seconds after the tap rather than instantly, so a same-second
+  // correction (the confirmation screen's undo button, or PRN's own
+  // "отменить") doesn't leave the trusted contact with a false "taken"
+  // message -- if the slot is no longer marked taken by the time this
+  // runs, it silently skips.
+  function notifyDoseTakenIfEnabled(med, dayKey, time) {
+    if (!settings.emergencyEnabled) return;
+    if (!isBotConfigured()) return;
+    if (!(settings.emergencyChatId || "").trim()) return;
+    setTimeout(function () {
+      if (!isTakenSlot(med, dayKey, time)) return;
+      var who = profile.name ? " (" + profile.name + ")" : "";
+      var when = time === "PRN" ? "" : ", назначенный на " + time + ",";
+      sendTelegramMessage(
+        "SilverCare" + who + ": приём «" + med.name + "» (" + med.dose + ")" + when +
+        " подтверждён" + (time === "PRN" ? " (по необходимости)." : " вовремя.")
+      );
+    }, 2500);
   }
 
   function checkEmergencyEscalations() {
