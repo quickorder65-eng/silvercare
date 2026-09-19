@@ -119,6 +119,17 @@ body {
   overflow: hidden;
 }
 
+/* Screen titles (and the clock) get programmatic focus on every screen
+   change purely so screen readers announce them — via tabindex="-1", so
+   they're never reachable by Tab. That means a sighted keyboard user can
+   never land here directly, so the browser's default focus rectangle
+   would only ever show up as a stray box around ordinary text. Suppress
+   it here; every real interactive control keeps its own visible
+   :focus-visible ring further down this file. */
+[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* At the largest font scales, a long word must wrap rather than run off
    the edge of a narrow phone screen. */
 h1, h2, h3, p, dd, dt, .btn, .choice-btn span, .med-row__name, .med-row__meta {
