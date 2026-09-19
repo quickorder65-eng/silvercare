@@ -2184,11 +2184,24 @@
       '<div class="settings-block">' +
       settingsToggleRow("switch-emergency", "bell", "Уведомлять доверенного человека", settings.emergencyEnabled) +
       "</div>" +
-      '<label class="field-label" for="input-tg-token">Токен Telegram-бота</label>' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">Настраивается один раз — обычно это делает родственник, а не сам пожилой человек. Шаг 1 (создать бота) занимает пару минут, дальше всё в два клика.</p>' +
+
+      '<label class="field-label" for="input-tg-token">Шаг 1. Токен бота</label>' +
       '<input class="text-input" id="input-tg-token" type="text" autocomplete="off" placeholder="123456789:AA...bC" value="' + escapeAttr(settings.emergencyBotToken || "") + '" />' +
-      '<label class="field-label" for="input-tg-chatid">Chat ID доверенного человека</label>' +
-      '<input class="text-input" id="input-tg-chatid" type="text" autocomplete="off" placeholder="Например, 123456789" value="' + escapeAttr(settings.emergencyChatId || "") + '" />' +
-      '<p class="empty-note" style="text-align:left;align-self:stretch;">Как настроить: в Telegram напишите @BotFather → /newbot → скопируйте выданный токен сюда. Доверенный человек должен один раз написать своему боту любое сообщение — после этого его Chat ID можно узнать через @userinfobot.</p>' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">В Telegram напишите боту <strong>@BotFather</strong> → отправьте <strong>/newbot</strong> → следуйте подсказкам → скопируйте выданный токен сюда.</p>' +
+      '<div class="btn-stack" style="margin-top:0.25rem;">' +
+      '<button class="btn btn--secondary" id="btn-tg-getlink">' + icon("externalLink") + "<span>ПОЛУЧИТЬ ССЫЛКУ НА БОТА</span></button>" +
+      "</div>" +
+      '<p class="empty-note" id="tg-link-status" style="text-align:left;align-self:stretch;" role="status"></p>' +
+
+      '<label class="field-label" for="input-tg-chatid">Шаг 2. Chat ID доверенного человека</label>' +
+      '<input class="text-input" id="input-tg-chatid" type="text" autocomplete="off" placeholder="Заполнится автоматически" value="' + escapeAttr(settings.emergencyChatId || "") + '" />' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">Доверенный человек открывает бота по ссылке выше и жмёт «Start» (или пишет что угодно). Потом нажмите кнопку ниже — Chat ID найдётся сам.</p>' +
+      '<div class="btn-stack" style="margin-top:0.25rem;">' +
+      '<button class="btn btn--secondary" id="btn-tg-findchat">' + icon("bell") + "<span>НАЙТИ CHAT ID АВТОМАТИЧЕСКИ</span></button>" +
+      "</div>" +
+      '<p class="empty-note" id="tg-chat-status" style="text-align:left;align-self:stretch;" role="status"></p>' +
+
       '<div class="btn-stack" style="margin-top:0.25rem;">' +
       '<button class="btn btn--secondary" id="btn-test-emergency">' + icon("bell") + "<span>ОТПРАВИТЬ ТЕСТОВОЕ СООБЩЕНИЕ</span></button>" +
       "</div>" +
@@ -2226,6 +2239,8 @@
     });
     var tgTokenEl = document.getElementById("input-tg-token");
     var tgChatIdEl = document.getElementById("input-tg-chatid");
+    var tgLinkStatusEl = document.getElementById("tg-link-status");
+    var tgChatStatusEl = document.getElementById("tg-chat-status");
     on(tgTokenEl, "input", function () {
       settings.emergencyBotToken = tgTokenEl.value;
       saveSettings();
@@ -2234,6 +2249,71 @@
       settings.emergencyChatId = tgChatIdEl.value;
       saveSettings();
     });
+
+    // Step 1: turn the pasted token into a one-tap link to the bot,
+    // instead of asking the person to know or find their own bot's
+    // @username. getMe (like getUpdates below) needs to actually READ
+    // Telegram's JSON response, not just fire a request, so this can be
+    // blocked by the browser's CORS rules in a way sendMessage isn't —
+    // if that happens we fall back to a plain link the person can open
+    // by hand, which works regardless of CORS since it's a normal page
+    // load rather than a script reading the response.
+    on(document.getElementById("btn-tg-getlink"), "click", function () {
+      var token = (tgTokenEl.value || "").trim();
+      if (!token) {
+        tgLinkStatusEl.textContent = "Сначала вставьте токен бота в поле выше.";
+        return;
+      }
+      tgLinkStatusEl.textContent = "Проверяю токен…";
+      fetch("https://api.telegram.org/bot" + token + "/getMe")
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          if (data && data.ok && data.result && data.result.username) {
+            var username = data.result.username;
+            tgLinkStatusEl.innerHTML =
+              'Бот найден: <a href="https://t.me/' + username + '" target="_blank" rel="noopener noreferrer">открыть @' + username + ' в Telegram</a> — доверенный человек должен нажать «Start».';
+          } else {
+            tgLinkStatusEl.textContent = "Токен не подошёл — проверьте, что скопировали его целиком из чата с @BotFather.";
+          }
+        })
+        .catch(function () {
+          tgLinkStatusEl.innerHTML =
+            'Не получилось проверить автоматически. Откройте эту ссылку: <a href="https://api.telegram.org/bot' + escapeAttr(token) + '/getMe" target="_blank" rel="noopener noreferrer">проверить бота</a> — там будет имя бота в поле "username", а сам бот — по адресу t.me/имя_бота.';
+        });
+    });
+
+    // Step 2: read the Chat ID straight out of Telegram's own reply,
+    // instead of asking the person to parse JSON by eye.
+    on(document.getElementById("btn-tg-findchat"), "click", function () {
+      var token = (tgTokenEl.value || "").trim();
+      if (!token) {
+        tgChatStatusEl.textContent = "Сначала укажите токен бота (шаг 1).";
+        return;
+      }
+      tgChatStatusEl.textContent = "Ищу сообщения боту…";
+      fetch("https://api.telegram.org/bot" + token + "/getUpdates")
+        .then(function (res) { return res.json(); })
+        .then(function (data) {
+          var updates = data && data.ok && Array.isArray(data.result) ? data.result : [];
+          var last = updates.length ? updates[updates.length - 1] : null;
+          var msg = last && (last.message || last.channel_post);
+          if (msg && msg.chat && msg.chat.id != null) {
+            var chatId = String(msg.chat.id);
+            var name = (msg.from && (msg.from.first_name || msg.from.username)) || "";
+            tgChatIdEl.value = chatId;
+            settings.emergencyChatId = chatId;
+            saveSettings();
+            tgChatStatusEl.textContent = "Готово! Chat ID найден" + (name ? " (" + name + ")" : "") + " и сохранён.";
+          } else {
+            tgChatStatusEl.textContent = "Сообщений пока не вижу. Пусть доверенный человек напишет боту что-нибудь и нажмите кнопку ещё раз.";
+          }
+        })
+        .catch(function () {
+          tgChatStatusEl.innerHTML =
+            'Не получилось найти автоматически. После того как доверенный человек напишет боту, откройте: <a href="https://api.telegram.org/bot' + escapeAttr(token) + '/getUpdates" target="_blank" rel="noopener noreferrer">посмотреть сообщения</a> — найдите там число в "chat": {"id": ЧИСЛО} и впишите его в поле Chat ID вручную.';
+        });
+    });
+
     on(document.getElementById("btn-test-emergency"), "click", function () {
       var token = (settings.emergencyBotToken || "").trim();
       var chatId = (settings.emergencyChatId || "").trim();
