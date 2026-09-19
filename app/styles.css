@@ -7,11 +7,13 @@
    rem multiplier: text and buttons grow for accessibility, but are capped
    by how much vertical room actually exists on the device.
 
-   Three combinable adaptive axes are controlled via data-attributes on
-   <html>, set by app.js from stored preferences:
-     data-vision  = good | low | verylow   → text size, contrast, voice
-     data-hearing = good | low | none      → visual alert strength, vibration
-     data-motor   = good | difficult       → touch target size, spacing
+   Adaptive axes are controlled via data-attributes on <html>, set by
+   app.js from Настройки (independent of each other, and independent of
+   the onboarding accessibility answers that merely seed their defaults):
+     data-textsize = normal | large | xlarge  → text size only
+     data-contrast = normal | high            → colour palette only
+     data-motor    = good | difficult         → touch target size, spacing
+   Voice and vibration are plain booleans in `settings`, not CSS at all.
    ========================================================================= */
 
 * {
@@ -61,20 +63,24 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
-/* ---- Vision axis --------------------------------------------------------
-   Kept deliberately modest: text still grows noticeably, but the layout
-   variables above (touch-min etc.) are NOT multiplied by this, so bigger
-   text never pushes buttons off the bottom of the screen. */
-html[data-vision="low"] {
+/* ---- Text size + contrast ------------------------------------------------
+   Two INDEPENDENT axes, each its own attribute on <html>, both set from
+   Настройки (and seeded — but not locked — by the onboarding vision
+   answer). Kept deliberately modest: text still grows noticeably, but the
+   layout variables above (touch-min etc.) are NOT multiplied by this, so
+   bigger text never pushes buttons off the bottom of the screen. */
+html[data-textsize="large"] {
   --font-scale: 1.14;
   --color-border: #5a6e72;
 }
-html[data-vision="verylow"] {
+html[data-textsize="xlarge"] {
+  --font-scale: 1.3;
+}
+html[data-contrast="high"] {
   /* Same cool mint/grey family, pushed to maximum contrast: near-black
      background with a bright mint accent instead of stark black/white.
      Shadows don't read on a near-black surface, so cards fall back to a
      strong, always-visible border instead. */
-  --font-scale: 1.3;
   --color-bg: #0d1414;
   --color-surface: #0d1414;
   --color-text: #f2f7f7;
@@ -272,7 +278,7 @@ p.lead {
   background: #dcecea;
   border-color: var(--color-primary);
 }
-html[data-vision="verylow"] .btn--secondary:hover {
+html[data-contrast="high"] .btn--secondary:hover {
   background: #0f2422;
 }
 .btn--success {
@@ -357,7 +363,7 @@ html[data-vision="verylow"] .btn--secondary:hover {
   width: 1.2em;
   height: 1.2em;
 }
-html[data-vision="verylow"] .choice-btn .choice-icon {
+html[data-contrast="high"] .choice-btn .choice-icon {
   color: var(--color-primary);
 }
 .choice-btn:hover {
@@ -440,7 +446,7 @@ html[data-vision="verylow"] .choice-btn .choice-icon {
   0%, 100% { background: var(--color-alert-bg); }
   50% { background: #fffaf0; }
 }
-html[data-vision="verylow"] .alert-title {
+html[data-contrast="high"] .alert-title {
   font-size: clamp(1rem, 3vh, 1.5rem);
 }
 .alert-icon {
@@ -489,7 +495,7 @@ html[data-vision="verylow"] .alert-title {
   color: var(--color-success);
   flex-shrink: 0;
 }
-html[data-vision="verylow"] .confirm-check {
+html[data-contrast="high"] .confirm-check {
   color: var(--color-primary);
 }
 .confirm-check .icon {
@@ -656,7 +662,7 @@ a, button {
   color: var(--color-primary-dark);
   background: var(--color-primary-tint);
 }
-html[data-vision="verylow"] .nav-item[aria-current="page"] {
+html[data-contrast="high"] .nav-item[aria-current="page"] {
   color: var(--color-primary);
 }
 .nav-item[aria-current="page"] .nav-item__label {
@@ -701,14 +707,14 @@ html[data-vision="verylow"] .nav-item[aria-current="page"] {
   height: 1.3em;
   stroke-width: 2.2;
 }
-html[data-vision="verylow"] .week-nav-btn {
+html[data-contrast="high"] .week-nav-btn {
   color: var(--color-primary);
 }
 .week-nav-btn:hover {
   background: #dcecea;
   border-color: var(--color-primary);
 }
-html[data-vision="verylow"] .week-nav-btn:hover {
+html[data-contrast="high"] .week-nav-btn:hover {
   background: #0f2422;
 }
 .week-nav-btn:focus-visible {
@@ -836,7 +842,7 @@ html[data-vision="verylow"] .week-nav-btn:hover {
   align-items: center;
   justify-content: center;
 }
-html[data-vision="verylow"] .med-row__icon {
+html[data-contrast="high"] .med-row__icon {
   color: var(--color-primary);
 }
 .med-row__icon .icon {
@@ -867,7 +873,7 @@ html[data-vision="verylow"] .med-row__icon {
   flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
-html[data-vision="verylow"] .med-row__time {
+html[data-contrast="high"] .med-row__time {
   color: var(--color-primary);
 }
 .med-row__status {
@@ -907,17 +913,17 @@ html[data-vision="verylow"] .med-row__time {
   color: #8a3b23;
   border-color: #c0553a;
 }
-html[data-vision="verylow"] .med-row__status--taken {
+html[data-contrast="high"] .med-row__status--taken {
   background: #122a20;
   color: #7be8b8;
   border-color: #7be8b8;
 }
-html[data-vision="verylow"] .med-row__status--scheduled {
+html[data-contrast="high"] .med-row__status--scheduled {
   background: #1c2626;
   color: #cfe0e0;
   border-color: #f2f7f7;
 }
-html[data-vision="verylow"] .med-row__status--missed {
+html[data-contrast="high"] .med-row__status--missed {
   background: #2e150c;
   color: #ffb0a0;
   border-color: #ffb0a0;
@@ -1015,7 +1021,7 @@ html[data-vision="verylow"] .med-row__status--missed {
   border-color: var(--color-primary);
   color: var(--color-primary-dark);
 }
-html[data-vision="verylow"] .toggle-btn--on {
+html[data-contrast="high"] .toggle-btn--on {
   color: var(--color-primary);
 }
 .toggle-btn:focus-visible {
@@ -1041,4 +1047,675 @@ html[data-vision="verylow"] .toggle-btn--on {
 }
 .history-group:first-child .history-group__heading {
   margin-top: 0;
+}
+
+/* =========================================================================
+   GREETING (Сегодня header) — sits above the clock, small, not dominant.
+   ========================================================================= */
+.greeting {
+  font-size: clamp(0.85rem, calc(2vh * var(--font-scale)), 1.05rem);
+  font-weight: 700;
+  color: var(--color-muted);
+  margin: 0;
+}
+.section-heading {
+  width: 100%;
+  align-self: flex-start;
+  text-align: left;
+  font-size: clamp(0.85rem, calc(1.9vh * var(--font-scale)), 1.05rem);
+  font-weight: 700;
+  color: var(--color-muted);
+  margin: clamp(0.3rem, 1dvh, 0.5rem) 0 0;
+}
+
+/* Small "medication scheduled this day" indicator dot under a calendar cell. */
+.day-cell__dot {
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: var(--color-primary-dark);
+  margin-top: 0.05rem;
+}
+html[data-contrast="high"] .day-cell__dot {
+  background: var(--color-primary);
+}
+
+/* =========================================================================
+   NEXT-DOSE CARD — the single most important thing on the home screen.
+   Visually distinct from the plain "today's list" rows below it, and the
+   buttons on it clearly belong to THIS dose only (its name/time/dose sit
+   inside the same card as the buttons).
+   ========================================================================= */
+.next-dose-card {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.4rem, 1.2dvh, 0.7rem);
+  background: var(--color-primary-tint);
+  border: 2px solid var(--color-primary);
+  border-radius: 1.3rem;
+  padding: clamp(0.7rem, 2dvh, 1.1rem) clamp(0.8rem, 3vw, 1.1rem);
+  text-align: left;
+}
+.next-dose-card--overdue {
+  background: var(--color-alert-bg);
+  border-color: var(--color-alert-accent);
+}
+.next-dose-card--empty {
+  align-items: center;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-card-border);
+}
+.next-dose-card--empty p {
+  margin: 0;
+  color: var(--color-muted);
+  font-weight: 600;
+}
+.next-dose-card__eyebrow {
+  margin: 0;
+  font-size: clamp(0.78rem, 1.8dvh, 0.95rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--color-primary-dark);
+}
+.next-dose-card--overdue .next-dose-card__eyebrow {
+  color: var(--color-alert-accent);
+}
+html[data-contrast="high"] .next-dose-card__eyebrow {
+  color: var(--color-primary);
+}
+.next-dose-card__row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.5em;
+}
+.next-dose-card__time {
+  font-size: clamp(1.6rem, calc(4.2vh * var(--font-scale)), 2.3rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.next-dose-card__med {
+  font-size: clamp(1rem, calc(2.4vh * var(--font-scale)), 1.4rem);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+}
+.next-dose-card__med .icon {
+  width: 1em;
+  height: 1em;
+}
+.next-dose-card__dose {
+  margin: 0;
+  font-size: clamp(0.85rem, calc(2vh * var(--font-scale)), 1.1rem);
+  color: var(--color-secondary-dark);
+  font-weight: 600;
+}
+html[data-contrast="high"] .next-dose-card__dose {
+  color: var(--color-text);
+}
+
+/* =========================================================================
+   EXERCISE CARD (home screen) — distinct from the next-dose card.
+   ========================================================================= */
+.exercise-card {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.6vw, 0.9rem);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-card-border);
+  border-radius: 1.1rem;
+  padding: clamp(0.55rem, 1.7dvh, 0.85rem) clamp(0.65rem, 3vw, 0.95rem);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+.exercise-card__icon {
+  flex-shrink: 0;
+  width: clamp(2.1rem, 5.4dvh, 2.7rem);
+  height: clamp(2.1rem, 5.4dvh, 2.7rem);
+  border-radius: 0.8rem;
+  background: var(--color-primary-tint);
+  color: var(--color-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+html[data-contrast="high"] .exercise-card__icon {
+  color: var(--color-primary);
+}
+.exercise-card__icon .icon {
+  width: 55%;
+  height: 55%;
+}
+.exercise-card__body {
+  flex: 1;
+  min-width: 0;
+}
+.exercise-card__body h2 {
+  margin: 0;
+  font-size: clamp(0.9rem, calc(2.1vh * var(--font-scale)), 1.15rem);
+  font-weight: 700;
+}
+.exercise-card__body p {
+  margin: 0;
+  font-size: clamp(0.75rem, calc(1.7vh * var(--font-scale)), 0.95rem);
+  color: var(--color-muted);
+}
+.exercise-card .btn {
+  width: auto;
+  flex-shrink: 0;
+  min-height: clamp(2.4rem, 6.5dvh, 3rem);
+  padding: 0.4em 1.1em;
+}
+
+/* =========================================================================
+   RECALL / MATCHING EXERCISE — big labelled items to remember or match.
+   ========================================================================= */
+.recall-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(0.6rem, 2vw, 1.1rem);
+  width: 100%;
+}
+.recall-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 5.5rem;
+  padding: clamp(0.7rem, 2dvh, 1.1rem);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-card-border);
+  border-radius: 1.1rem;
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
+  font-size: clamp(0.85rem, 2vh, 1.05rem);
+}
+.recall-item__icon {
+  width: clamp(2.2rem, 6dvh, 3rem);
+  height: clamp(2.2rem, 6dvh, 3rem);
+  color: var(--color-primary-dark);
+}
+html[data-contrast="high"] .recall-item__icon {
+  color: var(--color-primary);
+}
+
+/* =========================================================================
+   BIG ON/OFF SWITCH — role="switch", text state always shown (never
+   colour-only), used in onboarding step 4 and every Settings toggle.
+   ========================================================================= */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0.3em 0.7em 0.3em 0.3em;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  font-family: inherit;
+  font-weight: 800;
+  font-size: clamp(0.68rem, 1.5dvh, 0.85rem);
+  cursor: pointer;
+  min-height: clamp(2.3rem, 6dvh, 2.8rem);
+}
+.switch__track {
+  flex-shrink: 0;
+  width: 2.6em;
+  height: 1.5em;
+  border-radius: 999px;
+  background: var(--color-border);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.switch__thumb {
+  position: absolute;
+  top: 0.15em;
+  left: 0.15em;
+  width: 1.2em;
+  height: 1.2em;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: left 0.15s ease;
+}
+.switch--on {
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+html[data-contrast="high"] .switch--on {
+  color: var(--color-primary);
+}
+.switch--on .switch__track {
+  background: var(--color-primary);
+}
+.switch--on .switch__thumb {
+  left: 1.25em;
+}
+.switch:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.switch--huge {
+  margin: 0;
+  padding: 0.5em 1.1em 0.5em 0.5em;
+  font-size: clamp(0.85rem, 2vh, 1.05rem);
+  min-height: clamp(3rem, 8dvh, 3.6rem);
+}
+.switch--huge .switch__track {
+  width: 3.4em;
+  height: 1.9em;
+}
+.switch--huge .switch__thumb {
+  width: 1.5em;
+  height: 1.5em;
+}
+.switch--huge.switch--on .switch__thumb {
+  left: 1.6em;
+}
+.switch-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5rem, 1.6vw, 0.8rem);
+  padding: clamp(0.5rem, 1.5dvh, 0.75rem) 0;
+  border-bottom: 1px solid var(--color-card-border);
+}
+.switch-row:last-child {
+  border-bottom: none;
+}
+.switch-row--center {
+  justify-content: center;
+  border-bottom: none;
+  padding: 0.6rem 0;
+}
+.switch-row__icon {
+  flex-shrink: 0;
+  width: clamp(1.4rem, 3.6dvh, 1.8rem);
+  height: clamp(1.4rem, 3.6dvh, 1.8rem);
+  color: var(--color-primary-dark);
+  display: flex;
+}
+html[data-contrast="high"] .switch-row__icon {
+  color: var(--color-primary);
+}
+.switch-row__label {
+  flex: 1;
+  min-width: 0;
+  font-size: clamp(0.88rem, calc(2vh * var(--font-scale)), 1.1rem);
+  font-weight: 600;
+}
+.settings-block {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-card-border);
+  border-radius: 1.1rem;
+  padding: 0.2rem clamp(0.65rem, 3vw, 0.95rem);
+  box-shadow: var(--shadow-sm);
+}
+
+/* =========================================================================
+   FORM CONTROLS — shared by onboarding name step and the medication form.
+   ========================================================================= */
+.field-label {
+  align-self: flex-start;
+  font-size: clamp(0.8rem, 1.9dvh, 1rem);
+  font-weight: 700;
+  color: var(--color-muted);
+  margin: 0.3rem 0 -0.35rem;
+}
+.text-input,
+.select-input {
+  width: 100%;
+  font-family: inherit;
+  font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.2rem);
+  font-weight: 600;
+  padding: 0.55em 0.8em;
+  border-radius: 0.9rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: var(--touch-min);
+}
+.text-input:focus-visible,
+.select-input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.text-input--big {
+  text-align: center;
+  font-size: clamp(1.05rem, calc(2.6vh * var(--font-scale)), 1.4rem);
+}
+.text-input--narrow {
+  width: 6rem;
+}
+.select-input--compact {
+  width: auto;
+  min-height: clamp(2.4rem, 6.5dvh, 3rem);
+  padding: 0.4em 0.6em;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.form-error {
+  width: 100%;
+  background: #f6dcd2;
+  color: #8a3b23;
+  border: 1.5px solid #c0553a;
+  border-radius: 0.9rem;
+  padding: 0.6em 0.9em;
+  font-weight: 700;
+  font-size: clamp(0.85rem, 1.9dvh, 1.02rem);
+}
+html[data-contrast="high"] .form-error {
+  background: #2e150c;
+  color: #ffb0a0;
+  border-color: #ffb0a0;
+}
+
+/* =========================================================================
+   MEDICATION FORM — onboarding step 3 and Лекарства add/edit.
+   ========================================================================= */
+.med-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  text-align: left;
+}
+.freq-extra {
+  width: 100%;
+}
+.day-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.day-chip {
+  flex: 1 1 3.6rem;
+  min-height: clamp(2.6rem, 7dvh, 3.2rem);
+  border-radius: 0.8rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: clamp(0.8rem, 1.9dvh, 1rem);
+  cursor: pointer;
+}
+.day-chip--on {
+  background: var(--color-primary-tint);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+}
+html[data-contrast="high"] .day-chip--on {
+  color: var(--color-primary);
+}
+.day-chip:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.time-chip-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.time-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.time-chip__input {
+  flex: 1;
+  font-family: inherit;
+  font-size: clamp(0.95rem, calc(2.2vh * var(--font-scale)), 1.2rem);
+  font-weight: 700;
+  padding: 0.5em 0.7em;
+  border-radius: 0.8rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: clamp(2.5rem, 6.5dvh, 3rem);
+}
+.time-chip__input:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.time-chip__remove {
+  flex-shrink: 0;
+  width: clamp(2.4rem, 6.5dvh, 2.9rem);
+  height: clamp(2.4rem, 6.5dvh, 2.9rem);
+  border-radius: 0.8rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: #8a3b23;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.time-chip__remove .icon {
+  width: 1.2em;
+  height: 1.2em;
+}
+.time-chip__remove:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+.photo-field {
+  width: 100%;
+}
+.photo-upload {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  width: 100%;
+  min-height: clamp(2.8rem, 7.5dvh, 3.4rem);
+  border-radius: 0.9rem;
+  border: 1.5px dashed var(--color-border);
+  color: var(--color-muted);
+  font-weight: 600;
+  font-size: clamp(0.8rem, 1.9dvh, 1rem);
+  cursor: pointer;
+  text-align: center;
+  padding: 0.5em 0.8em;
+}
+.photo-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.photo-preview img {
+  width: clamp(3.2rem, 9dvh, 4rem);
+  height: clamp(3.2rem, 9dvh, 4rem);
+  object-fit: cover;
+  border-radius: 0.8rem;
+  border: 1.5px solid var(--color-card-border);
+}
+
+/* =========================================================================
+   ONBOARDING PROGRESS — "Шаг X из 4" text (screen-reader + low-vision
+   friendly), plus the small decorative dots underneath.
+   ========================================================================= */
+.onb-progress {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+.onb-progress__text {
+  margin: 0;
+  font-size: clamp(0.78rem, 1.8dvh, 0.95rem);
+  font-weight: 700;
+  color: var(--color-muted);
+}
+.progress {
+  display: flex;
+  gap: 0.4rem;
+}
+.progress-dot {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--color-border);
+  opacity: 0.5;
+}
+.progress-dot--active {
+  background: var(--color-primary-dark);
+  opacity: 1;
+}
+html[data-contrast="high"] .progress-dot--active {
+  background: var(--color-primary);
+}
+
+/* =========================================================================
+   MEDICATIONS TAB — CRUD list cards, distinct from the read-only rows
+   used on Сегодня/История.
+   ========================================================================= */
+.med-card {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.5rem, 1.6vw, 0.8rem);
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-card-border);
+  border-radius: 1.1rem;
+  padding: clamp(0.6rem, 1.8dvh, 0.9rem) clamp(0.65rem, 3vw, 0.95rem);
+  text-align: left;
+  box-shadow: var(--shadow-sm);
+}
+.med-card__icon {
+  margin-top: 0.1rem;
+}
+.med-card__photo {
+  width: clamp(2.4rem, 6.5dvh, 3.2rem);
+  height: clamp(2.4rem, 6.5dvh, 3.2rem);
+  border-radius: 0.8rem;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.med-card__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.med-card__name {
+  margin: 0;
+  font-size: clamp(0.95rem, calc(2.3vh * var(--font-scale)), 1.2rem);
+  font-weight: 700;
+}
+.med-card__off {
+  font-weight: 500;
+  color: var(--color-muted);
+  font-size: 0.85em;
+}
+.med-card__meta {
+  margin: 0;
+  font-size: clamp(0.75rem, calc(1.7vh * var(--font-scale)), 0.95rem);
+  color: var(--color-muted);
+}
+.med-card .btn--compact {
+  align-self: flex-start;
+  width: auto;
+  margin-top: 0.3rem;
+  padding: 0.4em 0.9em;
+}
+.med-card__actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.icon-btn {
+  width: clamp(2.4rem, 6.5dvh, 2.9rem);
+  height: clamp(2.4rem, 6.5dvh, 2.9rem);
+  border-radius: 0.8rem;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.icon-btn .icon {
+  width: 1.15em;
+  height: 1.15em;
+}
+.icon-btn--danger {
+  color: #8a3b23;
+  border-color: #c0553a;
+}
+html[data-contrast="high"] .icon-btn--danger {
+  color: #ffb0a0;
+  border-color: #ffb0a0;
+}
+.icon-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* =========================================================================
+   DESTRUCTIVE BUTTON — used only for "yes, delete" confirmations.
+   ========================================================================= */
+.btn--danger {
+  background: #c0553a;
+  color: #ffffff;
+  box-shadow: 0 3px 10px rgba(192, 85, 58, 0.3);
+}
+html[data-contrast="high"] .btn--danger {
+  background: #8a2a12;
+  color: #ffe6df;
+}
+
+/* =========================================================================
+   MEDICATION STATUS — "snoozed" (Отложено) kind, not present in the
+   original 4-state palette.
+   ========================================================================= */
+.med-row__status--snoozed {
+  background: #e6e2c9;
+  color: #6b5a10;
+  border-color: #a68f1f;
+}
+html[data-contrast="high"] .med-row__status--snoozed {
+  background: #2a2712;
+  color: #f2e08a;
+  border-color: #f2e08a;
+}
+
+/* =========================================================================
+   RESPONSIVE — desktop layout. The app is designed mobile-first (this is
+   the audience's primary device), but on a wide viewport we centre it in
+   a phone-like column instead of stretching every control edge-to-edge,
+   and the bottom nav becomes a top nav bar instead of a mobile tab bar.
+   ========================================================================= */
+@media (min-width: 900px) {
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    box-shadow: 0 0 0 1px var(--color-card-border), 0 20px 60px rgba(38, 50, 56, 0.18);
+  }
+  body {
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    background: linear-gradient(180deg, #cfd8d9, #e3e7e8);
+  }
+  html[data-contrast="high"] body {
+    background: #000;
+  }
 }
