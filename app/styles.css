@@ -1699,23 +1699,73 @@ html[data-contrast="high"] .med-row__status--snoozed {
 
 /* =========================================================================
    RESPONSIVE — desktop layout. The app is designed mobile-first (this is
-   the audience's primary device), but on a wide viewport we centre it in
-   a phone-like column instead of stretching every control edge-to-edge,
-   and the bottom nav becomes a top nav bar instead of a mobile tab bar.
+   the audience's primary device), but on a wide viewport it becomes a
+   real desktop app: a persistent left sidebar for navigation and a full-
+   width content pane next to it — not a phone mockup shrunk into the
+   middle of the screen. Onboarding / alert / confirmation screens have no
+   sidebar (they render straight into #app with no .bottom-nav sibling),
+   so they simply keep centering themselves in the available width.
    ========================================================================= */
 @media (min-width: 900px) {
-  #app {
-    max-width: 480px;
-    margin: 0 auto;
-    box-shadow: 0 0 0 1px var(--color-card-border), 0 20px 60px rgba(38, 50, 56, 0.18);
-  }
   body {
     overflow: auto;
-    display: flex;
-    justify-content: center;
-    background: linear-gradient(180deg, #cfd8d9, #e3e7e8);
   }
-  html[data-contrast="high"] body {
-    background: #000;
+
+  /* The sidebar is taken out of #app's normal flow (position: fixed), so
+     #app's own column layout is untouched — its one remaining in-flow
+     child (.tab-content, when present) just grows to fill the full
+     height, and screens with no nav (onboarding, alerts) are unaffected. */
+  .bottom-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    height: 100dvh;
+    width: 264px;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.3rem;
+    padding: 1.6rem 0.9rem;
+    border-top: none;
+    border-right: 1px solid var(--color-card-border);
+    box-shadow: 6px 0 24px rgba(38, 50, 56, 0.06);
+  }
+  .bottom-nav::before {
+    content: "SilverCare";
+    display: block;
+    padding: 0.4rem 0.75rem 1.1rem;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--color-primary-dark);
+    letter-spacing: -0.01em;
+  }
+  html[data-contrast="high"] .bottom-nav::before {
+    color: var(--color-primary);
+  }
+  .nav-item {
+    flex: none;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.85rem;
+    min-height: auto;
+    padding: 0.85rem 0.9rem;
+    border-radius: 0.85rem;
+    font-size: 1rem;
+  }
+  .nav-item__icon {
+    width: 1.4rem;
+    height: 1.4rem;
+  }
+  .nav-item__label {
+    font-size: 1rem;
+  }
+
+  .tab-content {
+    margin-left: 264px;
+  }
+  .tab-content .screen--tab {
+    max-width: 760px;
+    padding: 2.75rem clamp(1.5rem, 4vw, 3rem) 3rem;
   }
 }

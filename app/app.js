@@ -193,6 +193,66 @@
   }
 
   /* ---------------------------------------------------------------------
+     Notification chime (Web Audio API) — a short, clear two-note sound
+     that plays on every reminder alongside voice/vibration/the visual
+     alert, so a reminder is never silent — including on a desktop
+     computer, which can't vibrate, or when voice is turned off. Browsers
+     block audio until the page has had a real user gesture, so a single
+     shared AudioContext is created lazily and resumed on the first
+     tap/click/key anywhere on the page — by the time a real reminder
+     fires the person has always already touched the app at least once.
+     ------------------------------------------------------------------- */
+  var sharedAudioCtx = null;
+  function getAudioCtx() {
+    var Ctor = window.AudioContext || window.webkitAudioContext;
+    if (!Ctor) return null;
+    if (!sharedAudioCtx) {
+      try {
+        sharedAudioCtx = new Ctor();
+      } catch (e) {
+        return null;
+      }
+    }
+    return sharedAudioCtx;
+  }
+  function unlockAudio() {
+    var ctx = getAudioCtx();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(function () {});
+    }
+  }
+  ["pointerdown", "keydown"].forEach(function (evt) {
+    document.addEventListener(evt, unlockAudio, { passive: true });
+  });
+  function playTone(ctx, freq, startTime, duration, peakGain) {
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(startTime);
+    osc.stop(startTime + duration + 0.05);
+  }
+  function playChime() {
+    try {
+      var ctx = getAudioCtx();
+      if (!ctx) return; // no Web Audio support — voice/vibration/visual alert still fire
+      if (ctx.state === "suspended") ctx.resume().catch(function () {});
+      var now = ctx.currentTime;
+      // Calm two-note "ding-dong", loud enough to notice, not jarring.
+      playTone(ctx, 880, now, 0.45, 0.22);
+      playTone(ctx, 659.25, now + 0.26, 0.55, 0.19);
+    } catch (e) {
+      /* Web Audio threw/blocked — voice, vibration and the visual alert
+         still carry the reminder, so nothing is lost. */
+    }
+  }
+
+  /* ---------------------------------------------------------------------
      Date helpers — every date is keyed as a zero-padded "YYYY-MM-DD"
      string: a safe object key, and safe to compare/sort as plain text.
      ------------------------------------------------------------------- */
@@ -1693,6 +1753,7 @@
     });
 
     focusMain();
+    playChime();
     speak("Сейчас " + spokenTime(new Date()) + ". Пора принять " + med.name + ". " + med.dose + ".");
     vibrateOnce([500, 200, 500, 200, 500, 200, 500]);
   }
