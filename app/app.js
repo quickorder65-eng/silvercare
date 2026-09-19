@@ -2071,6 +2071,7 @@
       '<div class="btn-stack">' +
       '<button class="btn btn--primary" id="btn-redo-onboarding">' + icon("refresh") + "<span>ПОВТОРИТЬ НАСТРОЙКУ ДОСТУПНОСТИ</span></button>" +
       '<button class="btn btn--secondary" id="btn-demo-alert">' + icon("wrench") + "<span>ЗАПУСТИТЬ ТЕСТОВОЕ НАПОМИНАНИЕ</span></button>" +
+      '<button class="btn btn--ghost" id="btn-reset-app">' + icon("trash") + "<span>СБРОСИТЬ ПРИЛОЖЕНИЕ (ДЛЯ ДЕМО)</span></button>" +
       "</div>" +
       '<p class="empty-note" style="text-align:center;align-self:center;">Режим для близких (просмотр статуса приёма родственником) — в разработке.</p>';
 
@@ -2100,6 +2101,9 @@
       redoAccessMode = true;
       navigate("onb-vision");
     });
+    on(document.getElementById("btn-reset-app"), "click", function () {
+      navigate("reset-confirm");
+    });
     on(document.getElementById("btn-demo-alert"), "click", function () {
       var slot = getNextSlot();
       if (slot) {
@@ -2111,6 +2115,39 @@
         if (med) triggerAlert(med.id, med.times[0]);
         else announce("Сначала добавьте лекарство с расписанием.");
       }
+    });
+    focusMain();
+  }
+
+  // Wipes every stored key and reloads the page — used only from the
+  // reset-confirmation screen below, so the person deliberately chose it
+  // (e.g. to show the first-run experience again before a demo).
+  function resetApp() {
+    try {
+      Object.keys(LS_KEYS).forEach(function (k) {
+        localStorage.removeItem(LS_KEYS[k]);
+      });
+    } catch (e) {}
+    location.reload();
+  }
+  function renderResetConfirm() {
+    var inner =
+      '<div class="screen screen--center">' +
+      '<div class="alert-icon" aria-hidden="true">' + icon("alertTriangle") + "</div>" +
+      '<h1 class="title" data-autofocus>Сбросить приложение?</h1>' +
+      '<p class="lead">Все лекарства, история и настройки будут удалены безвозвратно, и снова откроется анкета первого запуска — как у нового пользователя. Удобно перед демонстрацией.</p>' +
+      '<div class="btn-stack" style="max-width:420px;">' +
+      '<button class="btn btn--secondary" id="btn-cancel-reset">ОТМЕНА</button>' +
+      '<button class="btn btn--danger btn--huge" id="btn-confirm-reset">ДА, СБРОСИТЬ</button>' +
+      "</div>" +
+      "</div>";
+    appEl.innerHTML = '<div class="tab-content">' + inner + "</div>" + bottomNavHtml("settings");
+    bindBottomNav();
+    on(document.getElementById("btn-cancel-reset"), "click", function () {
+      navigate("settings");
+    });
+    on(document.getElementById("btn-confirm-reset"), "click", function () {
+      resetApp();
     });
     focusMain();
   }
@@ -2135,6 +2172,7 @@
     "exercise-recall-q": renderExerciseRecallQuestion,
     "exercise-feedback": renderExerciseFeedback,
     settings: renderSettings,
+    "reset-confirm": renderResetConfirm,
   };
 
   function render() {
