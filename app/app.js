@@ -80,6 +80,14 @@
     highContrast: false,
     exercisesEnabled: true,
     language: "ru", // only "ru" implemented; "kk" reserved for later
+    // Emergency Care Notification — if a dose stays unconfirmed for
+    // emergencyDelayMinutes, a message goes to a trusted contact over
+    // Telegram (see sendTelegramMessage below). Off by default: it needs
+    // the trusted person's own bot token + chat id filled in first.
+    emergencyEnabled: false,
+    emergencyBotToken: "",
+    emergencyChatId: "",
+    emergencyDelayMinutes: 15,
   };
   var settings = loadJSON(LS_KEYS.settings, null);
   if (!settings || typeof settings !== "object") settings = null;
@@ -91,6 +99,10 @@
       highContrast: access.vision === "verylow",
       exercisesEnabled: true,
       language: "ru",
+      emergencyEnabled: false,
+      emergencyBotToken: "",
+      emergencyChatId: "",
+      emergencyDelayMinutes: 15,
     };
     saveSettings();
   }
@@ -99,6 +111,11 @@
     applyAccessibilityAttrs();
   }
   if (!settings) seedSettingsFromAccess();
+  // Migration for settings saved before Emergency Care Notification existed.
+  if (typeof settings.emergencyEnabled !== "boolean") settings.emergencyEnabled = false;
+  if (typeof settings.emergencyBotToken !== "string") settings.emergencyBotToken = "";
+  if (typeof settings.emergencyChatId !== "string") settings.emergencyChatId = "";
+  if (typeof settings.emergencyDelayMinutes !== "number" || !settings.emergencyDelayMinutes) settings.emergencyDelayMinutes = 15;
 
   var onboarded = loadJSON(LS_KEYS.onboarded, false);
 
@@ -336,6 +353,7 @@
       m.snoozes[todayKey() + "@" + sTime] = m.snoozeUntil;
     }
     if (!Array.isArray(m.alertedSlots)) m.alertedSlots = m.lastAlertSlot ? [m.lastAlertSlot] : [];
+    if (!Array.isArray(m.notifiedSlots)) m.notifiedSlots = [];
     if (typeof m.enabled !== "boolean") m.enabled = true;
     if (typeof m.photo !== "string") m.photo = "";
     delete m.time;
@@ -530,6 +548,7 @@
       return timeToMinutes(a) - timeToMinutes(b);
     });
     med.alertedSlots = [];
+    med.notifiedSlots = [];
     saveMeds();
     render();
   }
@@ -603,7 +622,76 @@
   function triggerAlert(medId, time) {
     navigate("alert", { medId: medId, time: time });
   }
-  setInterval(checkSchedule, 15000);
+
+  /* ---------------------------------------------------------------------
+     Emergency Care Notification — if a dose stays unconfirmed too long,
+     a trusted person is pinged over Telegram. There is no backend here,
+     so this calls the Telegram Bot API straight from the browser using
+     the trusted person's own bot token + chat id (entered in Settings).
+     Telegram's sendMessage endpoint doesn't return CORS headers, so the
+     request is fired in "no-cors" mode: the message still goes through,
+     we just can't read a success/failure response back in JS. That also
+     means the bot token sits in plain text in this browser's storage —
+     fine for a demo, not something to rely on for anything sensitive.
+     ------------------------------------------------------------------- */
+  function sendTelegramMessage(text) {
+    var token = (settings.emergencyBotToken || "").trim();
+    var chatId = (settings.emergencyChatId || "").trim();
+    if (!token || !chatId) return false;
+    // The token goes RAW into the path (it's a Telegram-issued
+    // id:secret pair — a colon there is a literal path character, not
+    // something to percent-encode: Telegram's router doesn't necessarily
+    // decode %3A back to ":" before matching the bot id, so encoding it
+    // would silently break every call). chat_id and text are ordinary
+    // query values, so those do get encoded.
+    var url =
+      "https://api.telegram.org/bot" + token +
+      "/sendMessage?chat_id=" + encodeURIComponent(chatId) +
+      "&text=" + encodeURIComponent(text);
+    try {
+      if (typeof fetch === "function") {
+        fetch(url, { mode: "no-cors" }).catch(function () {});
+      } else {
+        var img = new Image();
+        img.src = url;
+      }
+    } catch (e) {}
+    return true;
+  }
+
+  function checkEmergencyEscalations() {
+    if (!settings.emergencyEnabled) return;
+    if (!(settings.emergencyBotToken || "").trim()) return;
+    if (!(settings.emergencyChatId || "").trim()) return;
+    var delay = parseInt(settings.emergencyDelayMinutes, 10) || 15;
+    var now = nowMinutes();
+    var today = todayKey();
+    medications.forEach(function (med) {
+      if (med.enabled === false) return;
+      if (med.frequency && med.frequency.type === "asNeeded") return;
+      if (!isMedDueOnDate(med, today)) return;
+      if (!Array.isArray(med.notifiedSlots)) med.notifiedSlots = [];
+      (med.times || []).forEach(function (time) {
+        if (isTakenSlot(med, today, time)) return;
+        var sKey = slotKey(today, time);
+        if (med.notifiedSlots.indexOf(sKey) !== -1) return;
+        if (timeToMinutes(time) > now) return; // not due yet today
+        if (now - timeToMinutes(time) < delay) return;
+        med.notifiedSlots.push(sKey);
+        saveMeds();
+        var who = profile.name ? " (" + profile.name + ")" : "";
+        sendTelegramMessage(
+          "SilverCare" + who + ": приём лекарства «" + med.name + "» (" + med.dose + "), назначенный на " +
+          time + ", не подтверждён уже " + delay + " " + minutesWordRu(delay) + "."
+        );
+      });
+    });
+  }
+
+  setInterval(function () {
+    checkSchedule();
+    checkEmergencyEscalations();
+  }, 15000);
 
   /* ---------------------------------------------------------------------
      Small render helpers
@@ -1066,6 +1154,7 @@
         takenSlots: [],
         snoozes: {},
         alertedSlots: [],
+        notifiedSlots: [],
       });
     }
     saveMeds();
@@ -2086,7 +2175,23 @@
       '<button class="btn btn--secondary" id="btn-demo-alert">' + icon("wrench") + "<span>ЗАПУСТИТЬ ТЕСТОВОЕ НАПОМИНАНИЕ</span></button>" +
       '<button class="btn btn--ghost" id="btn-reset-app">' + icon("trash") + "<span>СБРОСИТЬ ПРИЛОЖЕНИЕ (ДЛЯ ДЕМО)</span></button>" +
       "</div>" +
-      '<p class="empty-note" style="text-align:center;align-self:center;">Режим для близких (просмотр статуса приёма родственником) — в разработке.</p>' +
+
+      '<h2 class="section-heading">Экстренное уведомление</h2>' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">Если приём не подтверждён дольше ' +
+      (parseInt(settings.emergencyDelayMinutes, 10) || 15) + " " + minutesWordRu(parseInt(settings.emergencyDelayMinutes, 10) || 15) +
+      ", доверенному человеку придёт сообщение в Telegram." +
+      "</p>" +
+      '<div class="settings-block">' +
+      settingsToggleRow("switch-emergency", "bell", "Уведомлять доверенного человека", settings.emergencyEnabled) +
+      "</div>" +
+      '<label class="field-label" for="input-tg-token">Токен Telegram-бота</label>' +
+      '<input class="text-input" id="input-tg-token" type="text" autocomplete="off" placeholder="123456789:AA...bC" value="' + escapeAttr(settings.emergencyBotToken || "") + '" />' +
+      '<label class="field-label" for="input-tg-chatid">Chat ID доверенного человека</label>' +
+      '<input class="text-input" id="input-tg-chatid" type="text" autocomplete="off" placeholder="Например, 123456789" value="' + escapeAttr(settings.emergencyChatId || "") + '" />' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">Как настроить: в Telegram напишите @BotFather → /newbot → скопируйте выданный токен сюда. Доверенный человек должен один раз написать своему боту любое сообщение — после этого его Chat ID можно узнать через @userinfobot.</p>' +
+      '<div class="btn-stack" style="margin-top:0.25rem;">' +
+      '<button class="btn btn--secondary" id="btn-test-emergency">' + icon("bell") + "<span>ОТПРАВИТЬ ТЕСТОВОЕ СООБЩЕНИЕ</span></button>" +
+      "</div>" +
 
       '<div class="btn-stack" style="margin-top:0.25rem;">' +
       '<a class="btn btn--ghost" href="../" id="btn-back-to-site">' + icon("externalLink") + "<span>ВЕРНУТЬСЯ НА САЙТ</span></a>" +
@@ -2113,6 +2218,31 @@
       settings.textSize = ev.target.value;
       saveSettings();
       render();
+    });
+    on(document.getElementById("switch-emergency"), "click", function () {
+      settings.emergencyEnabled = !settings.emergencyEnabled;
+      saveSettings();
+      render();
+    });
+    var tgTokenEl = document.getElementById("input-tg-token");
+    var tgChatIdEl = document.getElementById("input-tg-chatid");
+    on(tgTokenEl, "input", function () {
+      settings.emergencyBotToken = tgTokenEl.value;
+      saveSettings();
+    });
+    on(tgChatIdEl, "input", function () {
+      settings.emergencyChatId = tgChatIdEl.value;
+      saveSettings();
+    });
+    on(document.getElementById("btn-test-emergency"), "click", function () {
+      var token = (settings.emergencyBotToken || "").trim();
+      var chatId = (settings.emergencyChatId || "").trim();
+      if (!token || !chatId) {
+        announce("Сначала укажите токен бота и Chat ID.");
+        return;
+      }
+      sendTelegramMessage("SilverCare: тестовое сообщение. Если вы это видите — уведомления настроены правильно.");
+      announce("Тестовое сообщение отправлено.");
     });
     on(document.getElementById("btn-redo-onboarding"), "click", function () {
       redoAccessMode = true;
