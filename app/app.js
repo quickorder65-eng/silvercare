@@ -714,6 +714,7 @@
   }
   function renderTabShell(active, innerHtml) {
     appEl.innerHTML =
+      '<a class="app-back-link" href="../" aria-label="Вернуться на сайт" title="Вернуться на сайт">' + icon("chevronLeft") + "</a>" +
       '<div class="tab-content"><div class="screen screen--tab">' + innerHtml + "</div></div>" +
       bottomNavHtml(active);
     bindBottomNav();

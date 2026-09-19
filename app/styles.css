@@ -267,6 +267,45 @@ a.btn {
   text-decoration: none;
 }
 
+/* Small persistent "back to the marketing site" affordance shown on every
+   tab screen (Today, Medications, Reminders, History, Settings). On mobile
+   it floats over the top-left corner of the content; on desktop it moves
+   to sit just to the right of the sidebar (see the desktop media query
+   below), so it never overlaps the nav. */
+.app-back-link {
+  position: fixed;
+  top: 0.85rem;
+  left: 0.85rem;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  color: var(--color-primary-dark);
+  box-shadow: var(--shadow-btn);
+  text-decoration: none;
+  transition: transform 0.06s ease, box-shadow 0.15s ease;
+}
+.app-back-link .icon {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+.app-back-link:hover {
+  transform: translateY(-1px);
+}
+.app-back-link:active {
+  transform: translateY(0);
+}
+.app-back-link:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
 .btn--primary {
   background: var(--color-primary);
   color: var(--color-primary-contrast);
@@ -1770,5 +1809,12 @@ html[data-contrast="high"] .med-row__status--snoozed {
   .tab-content .screen--tab {
     max-width: 760px;
     padding: 2.75rem clamp(1.5rem, 4vw, 3rem) 3rem;
+  }
+
+  /* Move the back-to-site button off the sidebar and onto the content
+     pane, right next to it. */
+  .app-back-link {
+    left: calc(264px + 1.1rem);
+    top: 1.3rem;
   }
 }
