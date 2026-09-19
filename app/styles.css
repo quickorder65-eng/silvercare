@@ -13,7 +13,7 @@
      data-textsize = normal | large | xlarge  → text size only
      data-contrast = normal | high            → colour palette only
      data-motor    = good | difficult         → touch target size, spacing
-   Voice and vibration are plain booleans in `settings`, not CSS at all.
+   Voice is a plain boolean in `settings`, not CSS at all.
    ========================================================================= */
 
 * {

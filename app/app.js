@@ -76,7 +76,6 @@
      ------------------------------------------------------------------- */
   var DEFAULT_SETTINGS = {
     voice: false,
-    vibration: false,
     textSize: "normal", // "normal" | "large" | "xlarge"
     highContrast: false,
     exercisesEnabled: true,
@@ -88,7 +87,6 @@
   function seedSettingsFromAccess() {
     settings = {
       voice: access.vision !== "good",
-      vibration: access.hearing !== "good",
       textSize: access.vision === "verylow" ? "xlarge" : access.vision === "low" ? "large" : "normal",
       highContrast: access.vision === "verylow",
       exercisesEnabled: true,
@@ -119,19 +117,16 @@
     return !!settings.voice;
   }
   function needsStrongVisualAlert() {
-    return !!settings.vibration || access.hearing !== "good";
-  }
-  function wantsVibration() {
-    return !!settings.vibration;
+    return access.hearing !== "good";
   }
   function exercisesEnabled() {
     return settings.exercisesEnabled !== false;
   }
 
   /* ---------------------------------------------------------------------
-     Voice output (SpeechSynthesis) and vibration — both are best-effort:
-     if the browser/device doesn't support them, the app must not break,
-     and the same information is always ALSO on screen as text.
+     Voice output (SpeechSynthesis) — best-effort: if the browser doesn't
+     support it, the app must not break, and the same information is
+     always ALSO on screen as text.
      ------------------------------------------------------------------- */
   var cachedRuVoice = null;
   var voicesReady = false;
@@ -175,28 +170,11 @@
     }
   }
 
-  // A single call, with a multi-pulse pattern baked in — noticeable once,
-  // never a loop that keeps buzzing until the person dismisses it.
-  function vibrateOnce(pattern) {
-    if (!wantsVibration()) return;
-    if (!("vibrate" in navigator)) return; // no hard dependency — visual alert still covers this
-    try {
-      navigator.vibrate(pattern);
-    } catch (e) {}
-  }
-  function stopVibration() {
-    if ("vibrate" in navigator) {
-      try {
-        navigator.vibrate(0);
-      } catch (e) {}
-    }
-  }
-
   /* ---------------------------------------------------------------------
      Notification chime (Web Audio API) — a short, clear two-note sound
-     that plays on every reminder alongside voice/vibration/the visual
-     alert, so a reminder is never silent — including on a desktop
-     computer, which can't vibrate, or when voice is turned off. Browsers
+     that plays on every reminder alongside voice and the visual alert, so
+     a reminder is never silent — including on a desktop computer, or
+     when voice is turned off. Browsers
      block audio until the page has had a real user gesture, so a single
      shared AudioContext is created lazily and resumed on the first
      tap/click/key anywhere on the page — by the time a real reminder
@@ -240,15 +218,15 @@
   function playChime() {
     try {
       var ctx = getAudioCtx();
-      if (!ctx) return; // no Web Audio support — voice/vibration/visual alert still fire
+      if (!ctx) return; // no Web Audio support — voice and the visual alert still fire
       if (ctx.state === "suspended") ctx.resume().catch(function () {});
       var now = ctx.currentTime;
       // Calm two-note "ding-dong", loud enough to notice, not jarring.
       playTone(ctx, 880, now, 0.45, 0.22);
       playTone(ctx, 659.25, now + 0.26, 0.55, 0.19);
     } catch (e) {
-      /* Web Audio threw/blocked — voice, vibration and the visual alert
-         still carry the reminder, so nothing is lost. */
+      /* Web Audio threw/blocked — voice and the visual alert still carry
+         the reminder, so nothing is lost. */
     }
   }
 
@@ -571,7 +549,6 @@
   };
 
   function navigate(screen, params) {
-    stopVibration();
     state.screen = screen;
     state.params = params || {};
     render();
@@ -681,7 +658,6 @@
     camera: '<path d="M4 8.5a1.5 1.5 0 0 1 1.5-1.5h2.4l1.1-1.7a1.5 1.5 0 0 1 1.3-.7h3.4c.5 0 1 .3 1.3.7L16.1 7h2.4A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5Z"/><circle cx="12" cy="13" r="3.4"/>',
     volume: '<path d="M4 10v4h3.5L13 18V6L7.5 10Z"/><path d="M16 9.5a4 4 0 0 1 0 5"/><path d="M18.3 7a7.5 7.5 0 0 1 0 10"/>',
     volumeOff: '<path d="M4 10v4h3.5L13 18V6L7.5 10Z"/><line x1="16" y1="10" x2="21" y2="15"/><line x1="21" y1="10" x2="16" y2="15"/>',
-    vibrate: '<rect x="8" y="3" width="8" height="18" rx="1.6"/><line x1="2" y1="9" x2="2" y2="15"/><line x1="22" y1="9" x2="22" y2="15"/>',
     contrast: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor" stroke="none"/>',
     textSize: '<path d="M4 19V7.5A1.5 1.5 0 0 1 5.5 6H11a1.5 1.5 0 0 1 1.5 1.5V19"/><line x1="4" y1="19" x2="12.5" y2="19"/><line x1="4" y1="12.5" x2="12.5" y2="12.5"/><path d="M14.5 19v-6a1 1 0 0 1 1-1h2.6a1 1 0 0 1 1 1v6"/><line x1="14.5" y1="19" x2="19.1" y2="19"/>',
     globe: '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><line x1="3" y1="12" x2="21" y2="12"/>',
@@ -1511,7 +1487,6 @@
         var med = findMed(id);
         announce("Приём отмечен.");
         speak("Приём лекарства отмечен.");
-        vibrateOnce([200]);
         render();
       });
     });
@@ -1755,7 +1730,6 @@
     focusMain();
     playChime();
     speak("Сейчас " + spokenTime(new Date()) + ". Пора принять " + med.name + ". " + med.dose + ".");
-    vibrateOnce([500, 200, 500, 200, 500, 200, 500]);
   }
 
   function spokenTime(d) {
@@ -1802,7 +1776,6 @@
 
     focusMain();
     speak("Приём лекарства отмечен.");
-    vibrateOnce([150]);
 
     if (confirmTimer) clearTimeout(confirmTimer);
     confirmTimer = setTimeout(function () {
@@ -2015,7 +1988,6 @@
 
       '<div class="settings-block">' +
       settingsToggleRow("switch-voice", "volume", "Голосовые уведомления", settings.voice) +
-      settingsToggleRow("switch-vibration", "vibrate", "Вибрация", settings.vibration) +
       '<div class="switch-row">' +
       '<span class="switch-row__icon" aria-hidden="true">' + icon("textSize") + "</span>" +
       '<span class="switch-row__label">Размер текста</span>' +
@@ -2048,11 +2020,6 @@
 
     on(document.getElementById("switch-voice"), "click", function () {
       settings.voice = !settings.voice;
-      saveSettings();
-      render();
-    });
-    on(document.getElementById("switch-vibration"), "click", function () {
-      settings.vibration = !settings.vibration;
       saveSettings();
       render();
     });
