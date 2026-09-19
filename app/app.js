@@ -13,6 +13,25 @@
 (function () {
   "use strict";
 
+  /* =========================================================================
+     НАСТРОЙКА TELEGRAM-БОТА ДЛЯ ЭКСТРЕННЫХ УВЕДОМЛЕНИЙ
+     -------------------------------------------------------------------------
+     Один общий бот используется всеми, кому важна функция «Экстренное
+     уведомление» — так семье не нужно создавать своего бота через
+     @BotFather, только один раз подключиться к готовому.
+
+     ЧТОБЫ ВКЛЮЧИТЬ УВЕДОМЛЕНИЯ: создайте бота в Telegram через @BotFather
+     (напишите ему /newbot и следуйте подсказкам), скопируйте выданный им
+     токен и вставьте его сюда, между кавычками, вместо текста
+     ВСТАВЬТЕ_СЮДА_ТОКЕН_ОТ_BOTFATHER — и сохраните файл. Больше ничего
+     менять не нужно.
+     ========================================================================= */
+  var SHARED_TELEGRAM_BOT_TOKEN = "ВСТАВЬТЕ_СЮДА_ТОКЕН_ОТ_BOTFATHER";
+
+  function isBotConfigured() {
+    return !!SHARED_TELEGRAM_BOT_TOKEN && SHARED_TELEGRAM_BOT_TOKEN.indexOf("ВСТАВЬТЕ_СЮДА") !== 0;
+  }
+
   /* ---------------------------------------------------------------------
      Storage — one small service layer, everything else calls these.
      ------------------------------------------------------------------- */
@@ -82,10 +101,10 @@
     language: "ru", // only "ru" implemented; "kk" reserved for later
     // Emergency Care Notification — if a dose stays unconfirmed for
     // emergencyDelayMinutes, a message goes to a trusted contact over
-    // Telegram (see sendTelegramMessage below). Off by default: it needs
-    // the trusted person's own bot token + chat id filled in first.
+    // Telegram (see sendTelegramMessage below), using the one shared bot
+    // token configured at the top of this file. Off by default: it needs
+    // the trusted person's Chat ID filled in first.
     emergencyEnabled: false,
-    emergencyBotToken: "",
     emergencyChatId: "",
     emergencyDelayMinutes: 15,
   };
@@ -100,7 +119,6 @@
       exercisesEnabled: true,
       language: "ru",
       emergencyEnabled: false,
-      emergencyBotToken: "",
       emergencyChatId: "",
       emergencyDelayMinutes: 15,
     };
@@ -111,11 +129,13 @@
     applyAccessibilityAttrs();
   }
   if (!settings) seedSettingsFromAccess();
-  // Migration for settings saved before Emergency Care Notification existed.
+  // Migration for settings saved before Emergency Care Notification existed
+  // (and for the older per-family-bot-token version — that field is no
+  // longer used now that everyone shares one bot, so it's just dropped).
   if (typeof settings.emergencyEnabled !== "boolean") settings.emergencyEnabled = false;
-  if (typeof settings.emergencyBotToken !== "string") settings.emergencyBotToken = "";
   if (typeof settings.emergencyChatId !== "string") settings.emergencyChatId = "";
   if (typeof settings.emergencyDelayMinutes !== "number" || !settings.emergencyDelayMinutes) settings.emergencyDelayMinutes = 15;
+  delete settings.emergencyBotToken;
 
   var onboarded = loadJSON(LS_KEYS.onboarded, false);
 
@@ -626,18 +646,17 @@
   /* ---------------------------------------------------------------------
      Emergency Care Notification — if a dose stays unconfirmed too long,
      a trusted person is pinged over Telegram. There is no backend here,
-     so this calls the Telegram Bot API straight from the browser using
-     the trusted person's own bot token + chat id (entered in Settings).
+     so this calls the Telegram Bot API straight from the browser, using
+     the one shared bot token set at the top of this file plus the
+     trusted person's chat id (found automatically in Settings).
      Telegram's sendMessage endpoint doesn't return CORS headers, so the
      request is fired in "no-cors" mode: the message still goes through,
-     we just can't read a success/failure response back in JS. That also
-     means the bot token sits in plain text in this browser's storage —
-     fine for a demo, not something to rely on for anything sensitive.
+     we just can't read a success/failure response back in JS.
      ------------------------------------------------------------------- */
   function sendTelegramMessage(text) {
-    var token = (settings.emergencyBotToken || "").trim();
+    var token = SHARED_TELEGRAM_BOT_TOKEN;
     var chatId = (settings.emergencyChatId || "").trim();
-    if (!token || !chatId) return false;
+    if (!isBotConfigured() || !chatId) return false;
     // The token goes RAW into the path (it's a Telegram-issued
     // id:secret pair — a colon there is a literal path character, not
     // something to percent-encode: Telegram's router doesn't necessarily
@@ -661,7 +680,7 @@
 
   function checkEmergencyEscalations() {
     if (!settings.emergencyEnabled) return;
-    if (!(settings.emergencyBotToken || "").trim()) return;
+    if (!isBotConfigured()) return;
     if (!(settings.emergencyChatId || "").trim()) return;
     var delay = parseInt(settings.emergencyDelayMinutes, 10) || 15;
     var now = nowMinutes();
@@ -2184,15 +2203,15 @@
       '<div class="settings-block">' +
       settingsToggleRow("switch-emergency", "bell", "Уведомлять доверенного человека", settings.emergencyEnabled) +
       "</div>" +
-      '<p class="empty-note" style="text-align:left;align-self:stretch;">Настраивается один раз — обычно это делает родственник, а не сам пожилой человек. Шаг 1 (создать бота) занимает пару минут, дальше всё в два клика.</p>' +
+      '<p class="empty-note" style="text-align:left;align-self:stretch;">Настраивается один раз — обычно это делает родственник, а не сам пожилой человек. SilverCare использует один общий бот, создавать своего не нужно — достаточно двух шагов ниже.</p>' +
 
-      '<label class="field-label" for="input-tg-token">Шаг 1. Токен бота</label>' +
-      '<input class="text-input" id="input-tg-token" type="text" autocomplete="off" placeholder="123456789:AA...bC" value="' + escapeAttr(settings.emergencyBotToken || "") + '" />' +
-      '<p class="empty-note" style="text-align:left;align-self:stretch;">В Telegram напишите боту <strong>@BotFather</strong> → отправьте <strong>/newbot</strong> → следуйте подсказкам → скопируйте выданный токен сюда.</p>' +
+      '<label class="field-label">Шаг 1. Бот для уведомлений</label>' +
       '<div class="btn-stack" style="margin-top:0.25rem;">' +
-      '<button class="btn btn--secondary" id="btn-tg-getlink">' + icon("externalLink") + "<span>ПОЛУЧИТЬ ССЫЛКУ НА БОТА</span></button>" +
+      '<button class="btn btn--secondary" id="btn-tg-getlink">' + icon("externalLink") + "<span>ОТКРЫТЬ БОТА В TELEGRAM</span></button>" +
       "</div>" +
-      '<p class="empty-note" id="tg-link-status" style="text-align:left;align-self:stretch;" role="status"></p>' +
+      '<p class="empty-note" id="tg-link-status" style="text-align:left;align-self:stretch;" role="status">' +
+      (isBotConfigured() ? "" : "Бот пока не настроен разработчиком приложения — эта функция появится позже.") +
+      "</p>" +
 
       '<label class="field-label" for="input-tg-chatid">Шаг 2. Chat ID доверенного человека</label>' +
       '<input class="text-input" id="input-tg-chatid" type="text" autocomplete="off" placeholder="Заполнится автоматически" value="' + escapeAttr(settings.emergencyChatId || "") + '" />' +
@@ -2237,34 +2256,30 @@
       saveSettings();
       render();
     });
-    var tgTokenEl = document.getElementById("input-tg-token");
     var tgChatIdEl = document.getElementById("input-tg-chatid");
     var tgLinkStatusEl = document.getElementById("tg-link-status");
     var tgChatStatusEl = document.getElementById("tg-chat-status");
-    on(tgTokenEl, "input", function () {
-      settings.emergencyBotToken = tgTokenEl.value;
-      saveSettings();
-    });
     on(tgChatIdEl, "input", function () {
       settings.emergencyChatId = tgChatIdEl.value;
       saveSettings();
     });
 
-    // Step 1: turn the pasted token into a one-tap link to the bot,
-    // instead of asking the person to know or find their own bot's
-    // @username. getMe (like getUpdates below) needs to actually READ
-    // Telegram's JSON response, not just fire a request, so this can be
-    // blocked by the browser's CORS rules in a way sendMessage isn't —
-    // if that happens we fall back to a plain link the person can open
-    // by hand, which works regardless of CORS since it's a normal page
-    // load rather than a script reading the response.
+    // Step 1: everyone shares the same bot (SHARED_TELEGRAM_BOT_TOKEN at
+    // the top of this file), so there's nothing to type here — one tap
+    // just resolves that fixed token into a one-tap link to the bot.
+    // getMe needs to actually READ Telegram's JSON response, not just
+    // fire a request, so this can be blocked by the browser's CORS rules
+    // in a way sendMessage isn't — if that happens we fall back to a
+    // plain link the person can open by hand, which works regardless of
+    // CORS since it's a normal page load rather than a script reading
+    // the response.
     on(document.getElementById("btn-tg-getlink"), "click", function () {
-      var token = (tgTokenEl.value || "").trim();
-      if (!token) {
-        tgLinkStatusEl.textContent = "Сначала вставьте токен бота в поле выше.";
+      if (!isBotConfigured()) {
+        tgLinkStatusEl.textContent = "Бот пока не настроен разработчиком приложения — эта функция появится позже.";
         return;
       }
-      tgLinkStatusEl.textContent = "Проверяю токен…";
+      var token = SHARED_TELEGRAM_BOT_TOKEN;
+      tgLinkStatusEl.textContent = "Открываю бота…";
       fetch("https://api.telegram.org/bot" + token + "/getMe")
         .then(function (res) { return res.json(); })
         .then(function (data) {
@@ -2273,7 +2288,7 @@
             tgLinkStatusEl.innerHTML =
               'Бот найден: <a href="https://t.me/' + username + '" target="_blank" rel="noopener noreferrer">открыть @' + username + ' в Telegram</a> — доверенный человек должен нажать «Start».';
           } else {
-            tgLinkStatusEl.textContent = "Токен не подошёл — проверьте, что скопировали его целиком из чата с @BotFather.";
+            tgLinkStatusEl.textContent = "Не получилось найти бота — сообщите разработчику приложения.";
           }
         })
         .catch(function () {
@@ -2285,11 +2300,11 @@
     // Step 2: read the Chat ID straight out of Telegram's own reply,
     // instead of asking the person to parse JSON by eye.
     on(document.getElementById("btn-tg-findchat"), "click", function () {
-      var token = (tgTokenEl.value || "").trim();
-      if (!token) {
-        tgChatStatusEl.textContent = "Сначала укажите токен бота (шаг 1).";
+      if (!isBotConfigured()) {
+        tgChatStatusEl.textContent = "Бот пока не настроен разработчиком приложения — эта функция появится позже.";
         return;
       }
+      var token = SHARED_TELEGRAM_BOT_TOKEN;
       tgChatStatusEl.textContent = "Ищу сообщения боту…";
       fetch("https://api.telegram.org/bot" + token + "/getUpdates")
         .then(function (res) { return res.json(); })
@@ -2315,10 +2330,13 @@
     });
 
     on(document.getElementById("btn-test-emergency"), "click", function () {
-      var token = (settings.emergencyBotToken || "").trim();
       var chatId = (settings.emergencyChatId || "").trim();
-      if (!token || !chatId) {
-        announce("Сначала укажите токен бота и Chat ID.");
+      if (!isBotConfigured()) {
+        announce("Бот пока не настроен разработчиком приложения.");
+        return;
+      }
+      if (!chatId) {
+        announce("Сначала найдите Chat ID (шаг 2).");
         return;
       }
       sendTelegramMessage("SilverCare: тестовое сообщение. Если вы это видите — уведомления настроены правильно.");
