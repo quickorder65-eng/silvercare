@@ -1823,11 +1823,22 @@
       '<p class="confirm-sub">' + (medName ? escapeHtml(medName) : "") + "</p>" +
       '<p class="confirm-sub confirm-sub--muted">' + escapeHtml(nextLine) + "</p>" +
       '<div class="btn-stack" style="max-width:420px;margin-top:1rem;">' +
-      '<button class="btn btn--ghost" id="btn-undo">ОТМЕНИТЬ</button>' +
+      '<button class="btn btn--ghost" id="btn-undo" disabled>ОШИБСЯ, ОТМЕНИТЬ ПРИЁМ</button>' +
       "</div>" +
       "</div>";
 
-    on(document.getElementById("btn-undo"), "click", function () {
+    // The undo button starts disabled and only arms itself after a brief
+    // pause. This is the screen a huge, easy-to-hit "Я ПРИНЯЛ(А)" button
+    // leads straight into — for someone whose motor-control setting is
+    // "мне трудно" (shaky taps, slow release), a stray second contact from
+    // the same tap can otherwise land squarely on "cancel" a fraction of a
+    // second later and silently wipe out the dose they just confirmed.
+    var undoBtn = document.getElementById("btn-undo");
+    setTimeout(function () {
+      if (undoBtn) undoBtn.disabled = false;
+    }, 700);
+
+    on(undoBtn, "click", function () {
       if (confirmTimer) clearTimeout(confirmTimer);
       if (med && time) undoTaken(med.id, time);
       announce("Отменено.");
